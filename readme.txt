@@ -12,9 +12,9 @@ Inspect database usage, autoloaded options, transients, and safely clean databas
 
 == Description ==
 
-**SAC Database Inspector** is a lightweight, admin-only utility designed to help site administrators understand what is stored in their site’s database and cache — and clean it up safely when needed.
+**SAC Database Inspector** is a lightweight, admin-only utility designed to help site administrators understand what is stored in their site's database and cache — and clean it up safely when needed.
 
-Unlike aggressive “optimizer” plugins, Database Inspector focuses on **visibility first**, showing you where bloat exists before offering optional, manual cleanup actions.
+Unlike aggressive "optimizer" plugins, Database Inspector focuses on **visibility first**, showing you where bloat exists before offering optional, manual cleanup actions.
 
 ### Key features:
 * Database health gauge with clear visual feedback
@@ -28,6 +28,7 @@ Unlike aggressive “optimizer” plugins, Database Inspector focuses on **visib
 * Multisite-aware and shared-host safe
 * No frontend impact — admin-only
 * Contextual source identification for autoloaded options
+* Full WordPress 7.0 compatibility
 
 All cleanup actions require explicit confirmation and are protected by nonces and capability checks.
 
@@ -57,6 +58,9 @@ Yes. Developers can enable read-only mode using the `wpdi_read_only` filter.
 = How does the plugin identify option sources? =
 The plugin uses pattern matching based on option name prefixes and common WordPress naming conventions. This is an educated guess, not definitive information. Source identification helps you understand which plugin or system component likely created an option.
 
+= Is it compatible with WordPress 7.0? =
+Yes. Version 1.0.0 is fully tested and compatible with WordPress 7.0 and later, including support for modern WordPress APIs and best practices.
+
 == Screenshots ==
 
 1. Database health gauge and overview
@@ -64,6 +68,13 @@ The plugin uses pattern matching based on option name prefixes and common WordPr
 3. Top autoloaded options table
 
 == Changelog ==
+
+= 1.0.0 =
+* Stable release
+* Full WordPress 7.0 compatibility
+* Updated for compliance with WordPress 7.0 standards and APIs
+* Performance optimizations and code quality improvements
+* Tested and verified across all core cleanup features
 
 = 0.2.0 =
 * Added: Source identification column in autoloaded options table
@@ -84,8 +95,8 @@ The plugin uses pattern matching based on option name prefixes and common WordPr
 
 == Upgrade Notice ==
 
-= 0.1.2 =
-Compliance update. No functional changes.
+= 1.0.0 =
+Stable release with full WordPress 7.0 compatibility. Recommended for all sites.
 
 == Developer Notes ==
 

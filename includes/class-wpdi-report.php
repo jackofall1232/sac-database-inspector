@@ -20,6 +20,41 @@ class WPDI_Report {
 	private $ownership;
 
 	/**
+	 * Per-request generated report cache keyed by normalized arguments.
+	 *
+	 * @var array
+	 */
+	private $report_cache = array();
+
+	/**
+	 * Per-request storage health cache.
+	 *
+	 * @var array|null
+	 */
+	private $storage_cache = null;
+
+	/**
+	 * Per-request runtime health cache.
+	 *
+	 * @var array|null
+	 */
+	private $runtime_cache = null;
+
+	/**
+	 * Per-request maintenance health cache.
+	 *
+	 * @var array|null
+	 */
+	private $maintenance_cache = null;
+
+	/**
+	 * Per-request artifact index cache.
+	 *
+	 * @var array|null
+	 */
+	private $artifact_cache = null;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param WPDI_Ownership $ownership Ownership service.
@@ -46,9 +81,24 @@ class WPDI_Report {
 			)
 		);
 
-		$sections        = array_map( 'sanitize_key', (array) $args['sections'] );
-		$warnings        = array();
-		$storage         = $this->get_storage_health( $warnings );
+		$args['sections'] = array_values( array_unique( array_map( 'sanitize_key', (array) $args['sections'] ) ) );
+		sort( $args['sections'] );
+		ksort( $args );
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize -- Deterministic hash of internal scalar arguments; never unserialized.
+		$cache_key = md5( serialize( $args ) );
+		if ( isset( $this->report_cache[ $cache_key ] ) ) {
+			return $this->report_cache[ $cache_key ];
+		}
+
+		$sections = $args['sections'];
+		$warnings = array();
+		$storage  = $this->get_storage_health();
+		if ( ! $storage['information_schema_access'] ) {
+			$warnings[] = array(
+				'code'    => 'information_schema_restricted',
+				'message' => 'Database and table sizes are unavailable because the host restricts information_schema. Other diagnostics remain valid.',
+			);
+		}
 		$runtime         = $this->get_runtime_health();
 		$maintenance     = $this->get_maintenance_health();
 		$autoload        = in_array( 'autoload', $sections, true )
@@ -72,7 +122,7 @@ class WPDI_Report {
 		$ghost_data      = in_array( 'ghost_data', $sections, true ) ? $this->get_ghost_data( $artifacts, $storage['tables'], $maintenance ) : array();
 		$score           = $this->calculate_health_score( $runtime, $storage, $maintenance );
 
-		return array(
+		$this->report_cache[ $cache_key ] = array(
 			'schema_version' => 1,
 			'plugin_version' => WPDI_VERSION,
 			'generated_at'   => gmdate( 'c' ),
@@ -100,6 +150,8 @@ class WPDI_Report {
 			),
 			'warnings'       => $warnings,
 		);
+
+		return $this->report_cache[ $cache_key ];
 	}
 
 	/**
@@ -110,6 +162,10 @@ class WPDI_Report {
 	private function get_runtime_health() {
 		global $wpdb;
 
+		if ( null !== $this->runtime_cache ) {
+			return $this->runtime_cache;
+		}
+
 		$values       = $this->get_autoload_values();
 		$placeholders = implode( ', ', array_fill( 0, count( $values ), '%s' ) );
 		$sql          = $wpdb->prepare(
@@ -119,43 +175,56 @@ class WPDI_Report {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared -- The query was prepared immediately above.
 		$row = $wpdb->get_row( $sql );
 
-		return array(
-			'autoload_size'          => $row ? (int) $row->total_size : 0,
-			'autoload_count'         => $row ? (int) $row->option_count : 0,
-			'large_autoload_count'   => $row ? (int) $row->large_count : 0,
+		$this->runtime_cache = array(
+			'autoload_size'          => is_object( $row ) && isset( $row->total_size ) ? (int) $row->total_size : 0,
+			'autoload_count'         => is_object( $row ) && isset( $row->option_count ) ? (int) $row->option_count : 0,
+			'large_autoload_count'   => is_object( $row ) && isset( $row->large_count ) ? (int) $row->large_count : 0,
 			'large_option_threshold' => 100000,
-			'object_cache_enabled'   => wp_using_ext_object_cache(),
+			'object_cache_enabled'   => (bool) wp_using_ext_object_cache(),
 		);
+
+		return $this->runtime_cache;
 	}
 
 	/**
 	 * Storage health and tables.
 	 *
-	 * @param array $warnings Report warnings by reference.
 	 * @return array
 	 */
-	private function get_storage_health( &$warnings ) {
+	private function get_storage_health() {
 		global $wpdb;
 
+		if ( null !== $this->storage_cache ) {
+			return $this->storage_cache;
+		}
+
 		$previous = $wpdb->suppress_errors( true );
+		// Columns are aliased explicitly because MySQL 8 returns information_schema
+		// column names in their canonical uppercase form regardless of query casing.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- information_schema is the authoritative size source.
 		$rows  = $wpdb->get_results(
 			$wpdb->prepare(
-				'SELECT table_name, engine, table_rows, data_length, index_length, data_free FROM information_schema.TABLES WHERE table_schema = %s ORDER BY (data_length + index_length) DESC',
+				'SELECT TABLE_NAME AS table_name, ENGINE AS engine, TABLE_ROWS AS table_rows, DATA_LENGTH AS data_length, INDEX_LENGTH AS index_length, DATA_FREE AS data_free FROM information_schema.TABLES WHERE TABLE_SCHEMA = %s ORDER BY (DATA_LENGTH + INDEX_LENGTH) DESC',
 				DB_NAME
 			)
 		);
-		$error = $wpdb->last_error;
+		$error = (string) $wpdb->last_error;
 		$wpdb->suppress_errors( $previous );
 
+		$has_access   = is_array( $rows ) && '' === $error;
 		$tables       = array();
 		$total_size   = 0;
 		$options_size = 0;
-		if ( is_array( $rows ) && '' === $error ) {
-			foreach ( $rows as $row ) {
-				$size       = (int) $row->data_length + (int) $row->index_length;
-				$short_name = 0 === strpos( $row->table_name, $wpdb->base_prefix ) ? substr( $row->table_name, strlen( $wpdb->base_prefix ) ) : $row->table_name;
-				$short_name = preg_replace( '/^\d+_/', '', $short_name );
+		if ( $has_access ) {
+			$prefix = is_string( $wpdb->base_prefix ) ? $wpdb->base_prefix : '';
+			foreach ( $rows as $raw_row ) {
+				$row = $this->normalize_table_row( $raw_row );
+				if ( '' === $row['table_name'] ) {
+					continue;
+				}
+				$size       = $row['data_length'] + $row['index_length'];
+				$short_name = '' !== $prefix && 0 === strpos( $row['table_name'], $prefix ) ? substr( $row['table_name'], strlen( $prefix ) ) : $row['table_name'];
+				$short_name = (string) preg_replace( '/^\d+_/', '', $short_name );
 				$owner      = $this->is_core_table( $short_name )
 					? array(
 						'owner'        => 'WordPress Core',
@@ -169,32 +238,27 @@ class WPDI_Report {
 
 				$tables[]    = array_merge(
 					array(
-						'name'       => $row->table_name,
+						'name'       => $row['table_name'],
 						'size'       => $size,
-						'data_size'  => (int) $row->data_length,
-						'index_size' => (int) $row->index_length,
-						'free_size'  => (int) $row->data_free,
-						'row_count'  => (int) $row->table_rows,
-						'engine'     => sanitize_text_field( (string) $row->engine ),
+						'data_size'  => $row['data_length'],
+						'index_size' => $row['index_length'],
+						'free_size'  => $row['data_free'],
+						'row_count'  => $row['table_rows'],
+						'engine'     => sanitize_text_field( $row['engine'] ),
 					),
 					$owner
 				);
 				$total_size += $size;
-				if ( $wpdb->options === $row->table_name ) {
+				if ( $wpdb->options === $row['table_name'] ) {
 					$options_size = $size;
 				}
 			}
-		} else {
-			$warnings[] = array(
-				'code'    => 'information_schema_restricted',
-				'message' => 'Database and table sizes are unavailable because the host restricts information_schema. Other diagnostics remain valid.',
-			);
 		}
 
-		return array(
+		$this->storage_cache = array(
 			'total_size'                => $total_size,
 			'options_table_size'        => $options_size,
-			'information_schema_access' => ! empty( $rows ) && '' === $error,
+			'information_schema_access' => $has_access,
 			'large_table_count'         => count(
 				array_filter(
 					$tables,
@@ -203,6 +267,31 @@ class WPDI_Report {
 				)
 			),
 			'tables'                    => $tables,
+		);
+
+		return $this->storage_cache;
+	}
+
+	/**
+	 * Normalize one information_schema.TABLES row into a stable typed contract.
+	 *
+	 * Handles driver case differences and legitimately NULL metric columns
+	 * (views, unsupported engines, restricted hosts) without PHP warnings.
+	 *
+	 * @param object|array $raw_row Raw database row.
+	 * @return array
+	 */
+	private function normalize_table_row( $raw_row ) {
+		$row = is_object( $raw_row ) ? get_object_vars( $raw_row ) : (array) $raw_row;
+		$row = array_change_key_case( $row, CASE_LOWER );
+
+		return array(
+			'table_name'   => isset( $row['table_name'] ) && is_scalar( $row['table_name'] ) ? (string) $row['table_name'] : '',
+			'engine'       => isset( $row['engine'] ) && is_scalar( $row['engine'] ) ? (string) $row['engine'] : '',
+			'table_rows'   => isset( $row['table_rows'] ) && is_numeric( $row['table_rows'] ) ? (int) $row['table_rows'] : 0,
+			'data_length'  => isset( $row['data_length'] ) && is_numeric( $row['data_length'] ) ? (int) $row['data_length'] : 0,
+			'index_length' => isset( $row['index_length'] ) && is_numeric( $row['index_length'] ) ? (int) $row['index_length'] : 0,
+			'data_free'    => isset( $row['data_free'] ) && is_numeric( $row['data_free'] ) ? (int) $row['data_free'] : 0,
 		);
 	}
 
@@ -213,6 +302,10 @@ class WPDI_Report {
 	 */
 	private function get_maintenance_health() {
 		global $wpdb;
+
+		if ( null !== $this->maintenance_cache ) {
+			return $this->maintenance_cache;
+		}
 
 		$timeout_like   = $wpdb->esc_like( '_transient_timeout_' ) . '%';
 		$transient_like = $wpdb->esc_like( '_transient_' ) . '%';
@@ -242,7 +335,9 @@ class WPDI_Report {
 		}
 		$metrics['orphan_scan_row_limit'] = 100000;
 
-		return $metrics;
+		$this->maintenance_cache = $metrics;
+
+		return $this->maintenance_cache;
 	}
 
 	/**
@@ -294,14 +389,18 @@ class WPDI_Report {
 
 		$items = array();
 		foreach ( (array) $rows as $row ) {
-			$owner   = $this->ownership->identify( $row->option_name, 'option' );
+			$name = is_object( $row ) && isset( $row->option_name ) && is_scalar( $row->option_name ) ? (string) $row->option_name : '';
+			if ( '' === $name ) {
+				continue;
+			}
+			$owner   = $this->ownership->identify( $name, 'option' );
 			$items[] = array_merge(
 				array(
-					'name'       => $row->option_name,
-					'size'       => (int) $row->size,
-					'autoload'   => $row->autoload,
-					'serialized' => (bool) preg_match( '/^(?:a|O|C|s|i|b|d):/', (string) $row->value_prefix ),
-					'protected'  => $this->ownership->is_protected_option( $row->option_name ),
+					'name'       => $name,
+					'size'       => isset( $row->size ) ? (int) $row->size : 0,
+					'autoload'   => isset( $row->autoload ) && is_scalar( $row->autoload ) ? (string) $row->autoload : '',
+					'serialized' => (bool) preg_match( '/^(?:a|O|C|s|i|b|d):/', isset( $row->value_prefix ) && is_scalar( $row->value_prefix ) ? (string) $row->value_prefix : '' ),
+					'protected'  => $this->ownership->is_protected_option( $name ),
 				),
 				$owner
 			);
@@ -326,6 +425,10 @@ class WPDI_Report {
 	private function get_artifact_index() {
 		global $wpdb;
 
+		if ( null !== $this->artifact_cache ) {
+			return $this->artifact_cache;
+		}
+
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Bounded metadata-only inventory.
 		$options = $wpdb->get_results( "SELECT option_name AS artifact_name, LENGTH(option_value) AS artifact_size, autoload FROM {$wpdb->options} ORDER BY option_id DESC LIMIT 10000" );
 		$index   = array(
@@ -334,11 +437,15 @@ class WPDI_Report {
 			'usermeta' => array(),
 		);
 		foreach ( (array) $options as $row ) {
+			$name = is_object( $row ) && isset( $row->artifact_name ) && is_scalar( $row->artifact_name ) ? (string) $row->artifact_name : '';
+			if ( '' === $name ) {
+				continue;
+			}
 			$index['options'][] = array(
-				'name'     => $row->artifact_name,
-				'size'     => (int) $row->artifact_size,
-				'autoload' => in_array( $row->autoload, $this->get_autoload_values(), true ),
-				'owner'    => $this->ownership->identify( $row->artifact_name, 'option' ),
+				'name'     => $name,
+				'size'     => isset( $row->artifact_size ) ? (int) $row->artifact_size : 0,
+				'autoload' => isset( $row->autoload ) && in_array( $row->autoload, $this->get_autoload_values(), true ),
+				'owner'    => $this->ownership->identify( $name, 'option' ),
 			);
 		}
 
@@ -349,16 +456,22 @@ class WPDI_Report {
 		foreach ( $meta_queries as $type => $query ) {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared -- Static bounded aggregate query.
 			foreach ( (array) $wpdb->get_results( $query ) as $row ) {
+				$name = is_object( $row ) && isset( $row->artifact_name ) && is_scalar( $row->artifact_name ) ? (string) $row->artifact_name : '';
+				if ( '' === $name ) {
+					continue;
+				}
 				$index[ $type ][] = array(
-					'name'  => $row->artifact_name,
-					'count' => (int) $row->artifact_count,
-					'size'  => (int) $row->artifact_size,
-					'owner' => $this->ownership->identify( $row->artifact_name, $type ),
+					'name'  => $name,
+					'count' => isset( $row->artifact_count ) ? (int) $row->artifact_count : 0,
+					'size'  => isset( $row->artifact_size ) ? (int) $row->artifact_size : 0,
+					'owner' => $this->ownership->identify( $name, $type ),
 				);
 			}
 		}
 
-		return $index;
+		$this->artifact_cache = $index;
+
+		return $this->artifact_cache;
 	}
 
 	/**

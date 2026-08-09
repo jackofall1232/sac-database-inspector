@@ -28,10 +28,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Build production directory
+      - name: Build production distribution
+        run: bin/build-dist.sh
+      - name: Verify development files are excluded from the artifact
         run: |
-          mkdir -p build/sac-database-inspector
-          rsync -a --exclude-from=.distignore ./ build/sac-database-inspector/
+          cd build/sac-database-inspector
+          for forbidden in .github .gitignore .distignore .wordpress-org tests docs bin vendor node_modules phpcs.xml.dist phpunit.xml.dist composer.json composer.lock README.md; do
+            if [ -e "$forbidden" ]; then
+              echo "Forbidden development file shipped in distribution: $forbidden"
+              exit 1
+            fi
+          done
+          for required in sac-database-inspector.php uninstall.php readme.txt includes assets languages; do
+            if [ ! -e "$required" ]; then
+              echo "Required runtime file missing from distribution: $required"
+              exit 1
+            fi
+          done
+      - name: Upload installable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sac-database-inspector-zip
+          path: build/sac-database-inspector.zip
       - uses: wordpress/plugin-check-action@v1.0.6
         with:
           build-dir: ./build/sac-database-inspector

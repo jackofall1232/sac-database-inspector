@@ -1,12 +1,45 @@
+# Version control and repository metadata.
 /.git/
 /.github/
 /.gitignore
+/.gitattributes
 /.distignore
+
+# WordPress.org SVN assets (deployed separately, never inside the plugin).
+/.wordpress-org/
+
+# Development documentation (readme.txt is the user-facing readme).
+/docs/
+/README.md
+
+# Tests and test tooling.
+/tests/
+/phpunit.xml
+/phpunit.xml.dist
 /.phpunit.result.cache
+/.phpunit.cache/
+
+# Coding-standards tooling.
+/phpcs.xml
+/phpcs.xml.dist
+/.phpcs.xml
+/.phpcs.xml.dist
+
+# Dependency management (no runtime Composer/npm dependencies ship).
 /composer.json
 /composer.lock
-/phpcs.xml.dist
-/phpunit.xml.dist
-/tests/
+/package.json
+/package-lock.json
+/yarn.lock
 /vendor/
+/node_modules/
+
+# Build tooling and output.
+/bin/
 /build/
+/coverage/
+
+# Editor and OS artifacts.
+/.idea/
+/.vscode/
+.DS_Store

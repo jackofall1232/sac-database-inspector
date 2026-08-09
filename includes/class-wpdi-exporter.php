@@ -113,7 +113,8 @@ class WPDI_Exporter {
 			},
 			$row
 		);
-		fputcsv( $stream, $row );
+		// PHP 8.4 deprecates relying on the default $escape; keep the historical value explicitly.
+		fputcsv( $stream, $row, ',', '"', '\\' );
 	}
 
 	/**

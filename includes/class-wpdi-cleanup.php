@@ -132,7 +132,7 @@ class WPDI_Cleanup {
 				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Bounded relationship cleanup.
 				$rows       = $wpdb->get_results( "SELECT pm.meta_id, pm.post_id, pm.meta_key, pm.meta_value FROM (SELECT meta_id, post_id, meta_key, meta_value FROM {$wpdb->postmeta} ORDER BY meta_id ASC LIMIT 100000) pm LEFT JOIN {$wpdb->posts} p ON pm.post_id = p.ID WHERE p.ID IS NULL ORDER BY pm.meta_id ASC LIMIT 100", ARRAY_A );
 				$records    = $this->typed_records( 'postmeta', $rows );
-				$targets    = wp_list_pluck( $rows, 'meta_id' );
+				$targets    = wp_list_pluck( (array) $rows, 'meta_id' );
 				$restorable = true;
 				break;
 
@@ -140,7 +140,7 @@ class WPDI_Cleanup {
 				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Bounded relationship cleanup.
 				$rows       = $wpdb->get_results( "SELECT cm.meta_id, cm.comment_id, cm.meta_key, cm.meta_value FROM (SELECT meta_id, comment_id, meta_key, meta_value FROM {$wpdb->commentmeta} ORDER BY meta_id ASC LIMIT 100000) cm LEFT JOIN {$wpdb->comments} c ON cm.comment_id = c.comment_ID WHERE c.comment_ID IS NULL ORDER BY cm.meta_id ASC LIMIT 100", ARRAY_A );
 				$records    = $this->typed_records( 'commentmeta', $rows );
-				$targets    = wp_list_pluck( $rows, 'meta_id' );
+				$targets    = wp_list_pluck( (array) $rows, 'meta_id' );
 				$restorable = true;
 				break;
 
@@ -148,7 +148,7 @@ class WPDI_Cleanup {
 				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Bounded relationship cleanup.
 				$rows       = $wpdb->get_results( "SELECT um.umeta_id, um.user_id, um.meta_key, um.meta_value FROM (SELECT umeta_id, user_id, meta_key, meta_value FROM {$wpdb->usermeta} ORDER BY umeta_id ASC LIMIT 100000) um LEFT JOIN {$wpdb->users} u ON um.user_id = u.ID WHERE u.ID IS NULL ORDER BY um.umeta_id ASC LIMIT 100", ARRAY_A );
 				$records    = $this->typed_records( 'usermeta', $rows );
-				$targets    = wp_list_pluck( $rows, 'umeta_id' );
+				$targets    = wp_list_pluck( (array) $rows, 'umeta_id' );
 				$restorable = true;
 				break;
 

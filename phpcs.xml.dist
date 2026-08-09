@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<ruleset name="SAC Database Inspector">
+	<description>WordPress coding standards and PHP 7.4+ compatibility.</description>
+	<file>sac-database-inspector.php</file>
+	<file>uninstall.php</file>
+	<file>includes</file>
+	<exclude-pattern>*/vendor/*</exclude-pattern>
+	<arg name="extensions" value="php"/>
+	<arg value="sp"/>
+	<rule ref="WordPress-Core"/>
+	<rule ref="WordPress-Docs"/>
+	<rule ref="WordPress-Extra"/>
+	<rule ref="PHPCompatibilityWP">
+		<config name="testVersion" value="7.4-"/>
+	</rule>
+</ruleset>

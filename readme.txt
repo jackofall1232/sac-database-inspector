@@ -1,105 +1,151 @@
 === SAC Database Inspector ===
 Contributors: jackofall1232
-Tags: database cleaner, transients, cache, performance, admin tools
-Requires at least: 6.9
+Tags: database, autoload, database cleaner, performance, diagnostics
+Requires at least: 7.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.1.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Inspect database usage, autoloaded options, transients, and safely clean database clutter from a single admin dashboard.
+Inspect WordPress database health, plugin footprints, autoloaded options, and questionable leftovers with carefully controlled maintenance tools.
 
 == Description ==
 
-**SAC Database Inspector** is a lightweight, admin-only utility designed to help site administrators understand what is stored in their site's database and cache — and clean it up safely when needed.
+SAC Database Inspector helps administrators understand what is using the WordPress database before deciding whether maintenance is appropriate.
 
-Unlike aggressive "optimizer" plugins, Database Inspector focuses on **visibility first**, showing you where bloat exists before offering optional, manual cleanup actions.
+It is inspection-first: no background cleanup, “clean everything” action, telemetry, paid feature, or automatic external request is included.
 
-### Key features:
-* Database health gauge with clear visual feedback
-* View total database size (when supported by hosting)
-* Inspect autoloaded options that load on every page
-* Identify expired and unused transients
-* Detect post revisions, auto-drafts, spam, and trash
-* Find orphaned post meta and comment meta
-* Flush external object cache (when enabled)
-* Optional read-only mode via filter for audit-only environments
-* Multisite-aware and shared-host safe
-* No frontend impact — admin-only
-* Contextual source identification for autoloaded options
-* Full WordPress 7.0 compatibility
+= Database diagnostics =
 
-All cleanup actions require explicit confirmation and are protected by nonces and capability checks.
+* Runtime, storage, and maintenance health categories
+* Deterministic and explainable health penalty score
+* Database and table sizes when the host permits access
+* Graceful fallback when `information_schema` is restricted
+* Object-cache status and bounded maintenance counts
+
+= Ownership and footprints =
+
+* Conservative plugin option, metadata, transient, and custom-table estimates
+* Active, inactive, not-installed, WordPress core, theme, and unknown owner states
+* Explicit ownership confidence and evidence
+* Inactive installed plugins are never treated as missing
+
+= Autoload and ghost data =
+
+* Paginated, searchable, size-sorted autoload inspector
+* Serialized, protected, owner, status, confidence, and size indicators
+* Capped option previews with centralized sensitive-name redaction
+* Orphan metadata, expired transient, missing-plugin option/table, and stale cron findings
+* Heuristic findings are read-only and never automatically deleted
+
+= Controlled maintenance and rollback =
+
+* Capability, nonce, target, read-only-mode, and explicit-confirmation checks
+* At most 100 records changed per request
+* Lightweight local safety snapshots before supported changes
+* Restoration for options, autoload state, and orphan metadata
+* Protected WordPress options cannot have autoload changed
+
+= Reports and optional AI =
+
+* Redacted JSON, CSV, and HTML exports from one normalized report
+* Optional WordPress 7.0 AI Client explanations when a text provider is configured
+* Provider-neutral integration with no SAC API-key settings
+* AI receives capped metadata, not raw option values or database credentials
+* AI cannot run SQL, clean data, change options, or restore snapshots
+* All deterministic features work without AI
 
 == Installation ==
 
-1. Upload the plugin folder to `/wp-content/plugins/`, or install via the Plugins screen.
-2. Activate the plugin through the **Plugins** menu.
-3. Navigate to **Tools → DB Inspector** to view database statistics.
+1. Upload the plugin folder to `/wp-content/plugins/`, or install it through the Plugins screen.
+2. Activate SAC Database Inspector.
+3. Open Tools → DB Inspector.
 
 == Frequently Asked Questions ==
 
-= Is this plugin safe to use? =
-Yes. All cleanup actions are manual, protected, and clearly labeled. No background jobs or automatic deletions are performed.
+= Does the plugin change data automatically? =
 
-= Does this work on shared hosting? =
-Yes. If database size information is restricted by your host, the plugin degrades gracefully without errors.
+No. Scanning is read-only. Every maintenance action is initiated explicitly by an administrator, handles a bounded batch, and creates a safety snapshot where practical.
 
-= Does this support multisite? =
-Yes. Multisite installations are supported, including site transients and object cache detection.
+= Is plugin ownership guaranteed? =
 
-= Does this affect frontend performance? =
-No. The plugin loads only in the admin area.
+No. SAC uses conservative exact-prefix evidence and reports confidence. Unknown data remains unknown, and heuristic ownership never authorizes deletion.
 
-= Can I disable cleanup actions? =
-Yes. Developers can enable read-only mode using the `wpdi_read_only` filter.
+= Is data from an inactive plugin considered orphaned? =
 
-= How does the plugin identify option sources? =
-The plugin uses pattern matching based on option name prefixes and common WordPress naming conventions. This is an educated guess, not definitive information. Source identification helps you understand which plugin or system component likely created an option.
+No. Inactive but installed plugins have a distinct status and are not treated as missing.
 
-= Is it compatible with WordPress 7.0? =
-Yes. Version 1.0.0 is fully tested and compatible with WordPress 7.0 and later, including support for modern WordPress APIs and best practices.
+= What happens when database size access is restricted? =
+
+Table and total-size fields are marked unavailable. Other diagnostics continue to work, and restricted `information_schema` access is not treated as database failure.
+
+= How are snapshots stored? =
+
+Snapshots are stored locally in a non-autoloaded WordPress option, limited to 20 operations and 14 days, and removed when the plugin is uninstalled. Snapshot values are excluded from exports and AI context.
+
+= Does AI have access to cleanup tools? =
+
+No. AI is an optional explanation layer. It receives a capped, redacted metadata report only after an administrator requests an explanation. No mutation ability or database credential is exposed.
+
+= Does SAC contact an AI provider when AI is unavailable? =
+
+No. AI UI is enabled only when WordPress reports that configured text generation is supported. All other functionality is independent of AI.
+
+= Can I disable every maintenance action? =
+
+Yes. Add `add_filter( 'wpdi_read_only', '__return_true' );` in site-specific code.
 
 == Screenshots ==
 
-1. Database health gauge and overview
-2. Cleanup actions dashboard
-3. Top autoloaded options table
+1. Database health overview and bounded maintenance actions
+2. Runtime, storage, and maintenance health categories
+3. Conservative plugin database footprints
+4. Paginated autoload inspector
+5. Read-only ghost data findings
+6. Redacted reports and optional AI interpretation
+7. Safety snapshot history and restoration
+
+== Privacy and external services ==
+
+SAC has no telemetry or tracking. Database inspection and exports are local.
+
+If an administrator explicitly requests an AI explanation, SAC passes a capped and redacted metadata-only diagnostic context to the provider selected through WordPress Settings → Connectors. The external service, data handling, and terms depend on the connector/provider configured by the site owner. SAC does not store provider credentials and does not send raw option values, database credentials, WordPress salts, private keys, or authentication tokens.
 
 == Changelog ==
 
+= 1.1.0 =
+
+* Added modular report, ownership, cleanup, snapshot, export, and AI services.
+* Added normalized deterministic diagnostic reports and explainable health categories.
+* Added conservative plugin database footprint estimates and owner status distinctions.
+* Added read-only ghost data findings with confidence and reasons.
+* Added paginated/searchable autoload inspection, protected options, and redacted previews.
+* Added bounded cleanup, local safety snapshots, and supported restoration.
+* Added redacted JSON, CSV, and HTML exports.
+* Added optional provider-neutral WordPress 7.0 AI Client explanations.
+* Preserved existing cleanup identifiers, hooks, AJAX names, read-only mode, and flat statistics response.
+* Added PHPUnit, WordPress Coding Standards, PHP compatibility, and production-build configuration.
+* Removed no functionality and added no telemetry, paid features, provider SDKs, or automatic external calls.
+
 = 1.0.0 =
-* Stable release
-* Full WordPress 7.0 compatibility
-* Updated for compliance with WordPress 7.0 standards and APIs
-* Performance optimizations and code quality improvements
-* Tested and verified across all core cleanup features
+
+* Stable release with the original inspection dashboard and manual cleanup actions.
 
 = 0.2.0 =
-* Added: Source identification column in autoloaded options table
-* Added: Pattern-based detection for common plugins and WordPress core options
-* Improved: Better context for understanding option origins
+
+* Added contextual source identification to the autoload table.
 
 = 0.1.1 =
-* Naming and compliance updates
-* Plugin Check fixes
-* No functional changes
+
+* Naming and compliance updates.
 
 = 0.1.0 =
-* Initial release
-* Database inspection dashboard
-* Safe manual cleanup actions
-* Read-only mode support
-* Multisite compatibility
+
+* Initial database inspection dashboard, manual cleanup, read-only mode, and multisite support.
 
 == Upgrade Notice ==
 
-= 1.0.0 =
-Stable release with full WordPress 7.0 compatibility. Recommended for all sites.
+= 1.1.0 =
 
-== Developer Notes ==
-
-This plugin follows coding standards and avoids aggressive optimization tactics. It is intended as a transparent inspection and maintenance tool, not an automatic optimizer.
-
-Filters and actions are provided for extensibility.
+Adds modular diagnostics, ownership-aware footprints, bounded safety snapshots, redacted reports, and optional WordPress AI explanations. No release tag is created by this source change.

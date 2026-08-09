@@ -1,0 +1,39 @@
+name: Quality checks
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - '1.1.0'
+
+jobs:
+  php:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-version: ['7.4', '8.3']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          coverage: none
+          tools: composer:v2
+      - run: composer install --no-interaction --prefer-dist
+      - run: composer test
+      - run: composer lint
+
+  plugin-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build production directory
+        run: |
+          mkdir -p build/sac-database-inspector
+          rsync -a --exclude-from=.distignore ./ build/sac-database-inspector/
+      - uses: wordpress/plugin-check-action@v1.0.6
+        with:
+          build-dir: ./build/sac-database-inspector
+          wp-version: '7.0'
+          strict: true

@@ -1,304 +1,159 @@
 /**
- * Database Inspector Admin JavaScript
+ * SAC Database Inspector admin interactions.
  *
- * @package Database_Inspector
+ * @package WPDI
  */
 
 ( function( $ ) {
 	'use strict';
 
 	var WPDI = {
-		/**
-		 * Initialize.
-		 */
 		init: function() {
-			this.bindEvents();
-			this.initGauge();
-			this.checkReadOnly();
-		},
-
-		/**
-		 * Bind event handlers.
-		 */
-		bindEvents: function() {
-			$( '.wpdi-cleanup-btn' ).on( 'click', this.handleCleanup.bind( this ) );
-			$( '#wpdi-refresh' ).on( 'click', this.refreshStats.bind( this ) );
-		},
-
-		/**
-		 * Check and handle read-only mode.
-		 */
-		checkReadOnly: function() {
+			$( '.wpdi-cleanup-btn' ).on( 'click', this.cleanup );
+			$( '#wpdi-refresh' ).on( 'click', this.refresh );
+			$( '.wpdi-preview-option' ).on( 'click', this.preview );
+			$( '.wpdi-preview-close' ).on( 'click', function() {
+				$( '#wpdi-option-preview' ).prop( 'hidden', true );
+			} );
+			$( '.wpdi-autoload-toggle' ).on( 'click', this.changeAutoload );
+			$( '.wpdi-restore-snapshot' ).on( 'click', this.restore );
+			$( '#wpdi-ai-explain' ).on( 'click', this.explain );
 			if ( wpdiData.readOnly ) {
-				$( '.wpdi-cleanup-btn' ).prop( 'disabled', true );
+				$( '.wpdi-cleanup-btn, .wpdi-autoload-toggle, .wpdi-restore-snapshot' ).prop( 'disabled', true );
 			}
 		},
 
-		/**
-		 * Initialize the gauge needle position.
-		 */
-		initGauge: function() {
-			var $scoreEl = $( '.wpdi-health-score' );
-			var score = parseInt( $scoreEl.data( 'score' ), 10 ) || 0;
-			
-			// S-003: Set transform-origin explicitly via JS for cross-browser support.
-			var $needle = $( '.wpdi-gauge-needle' );
-			$needle.css( {
-				'transform-origin': '100px 100px',
-				'transition': 'transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)'
-			} );
-			
-			// Delay initial animation slightly for smoother load.
-			setTimeout( function() {
-				WPDI.updateGauge( score );
-			}, 100 );
-		},
-
-		/**
-		 * Update gauge needle position.
-		 *
-		 * @param {number} score Health score (0-100).
-		 */
-		updateGauge: function( score ) {
-			var $needle = $( '.wpdi-gauge-needle' );
-			// Convert score (0-100) to angle (-90 to 90 degrees).
-			var angle = ( score / 100 ) * 180 - 90;
-			$needle.css( 'transform', 'rotate(' + angle + 'deg)' );
-
-			// Update score color based on value.
-			var $scoreValue = $( '.wpdi-score-value' );
-			$scoreValue.text( score );
-			
-			if ( score <= 40 ) {
-				$scoreValue.css( 'color', '#22c55e' );
-			} else if ( score <= 70 ) {
-				$scoreValue.css( 'color', '#eab308' );
-			} else {
-				$scoreValue.css( 'color', '#ef4444' );
+		request: function( data, $button ) {
+			if ( $button ) {
+				$button.prop( 'disabled', true ).addClass( 'loading' );
 			}
-		},
-
-		/**
-		 * Handle cleanup button click.
-		 *
-		 * @param {Event} e Click event.
-		 */
-		handleCleanup: function( e ) {
-			e.preventDefault();
-
-			var $btn = $( e.currentTarget );
-			var action = $btn.data( 'action' );
-
-			if ( $btn.prop( 'disabled' ) || $btn.hasClass( 'loading' ) ) {
-				return;
-			}
-
-			// S-005: Check read-only mode.
-			if ( wpdiData.readOnly ) {
-				WPDI.showToast( wpdiData.i18n.readOnlyMode, 'error' );
-				return;
-			}
-
-			// S-006: Two-step confirmation - first backup, then proceed.
-			if ( ! confirm( wpdiData.i18n.confirmBackup ) ) {
-				return;
-			}
-
-			if ( ! confirm( wpdiData.i18n.confirmProceed ) ) {
-				return;
-			}
-
-			$btn.addClass( 'loading' );
-
-			$.ajax( {
-				url: wpdiData.ajaxUrl,
-				type: 'POST',
-				data: {
-					action: 'wpdi_cleanup',
-					cleanup_action: action,
-					nonce: wpdiData.nonce
-				},
-				success: function( response ) {
-					$btn.removeClass( 'loading' );
-
-					if ( response.success ) {
-						WPDI.showToast( response.data.message, 'success' );
-						WPDI.refreshStats();
-					} else {
-						// S-004: Normalize error message handling.
-						var errorMsg = WPDI.extractErrorMessage( response );
-						WPDI.showToast( errorMsg, 'error' );
-					}
-				},
-				error: function( jqXHR, textStatus, errorThrown ) {
-					$btn.removeClass( 'loading' );
-					// S-004: Include more context on network errors.
-					var errorMsg = wpdiData.i18n.error;
-					if ( textStatus === 'timeout' ) {
-						errorMsg = 'Request timed out. Please try again.';
-					}
-					WPDI.showToast( errorMsg, 'error' );
+			data.nonce = wpdiData.nonce;
+			return $.post( wpdiData.ajaxUrl, data ).always( function() {
+				if ( $button ) {
+					$button.prop( 'disabled', false ).removeClass( 'loading' );
 				}
 			} );
 		},
 
-		/**
-		 * S-004: Extract error message from various response formats.
-		 *
-		 * @param {Object} response AJAX response object.
-		 * @return {string} Error message.
-		 */
-		extractErrorMessage: function( response ) {
-			if ( ! response ) {
-				return wpdiData.i18n.error;
+		cleanup: function( event ) {
+			event.preventDefault();
+			var $button = $( event.currentTarget );
+			if ( wpdiData.readOnly || ! window.confirm( wpdiData.i18n.confirmProceed ) ) {
+				return;
 			}
-
-			// Check for response.data.message (object format).
-			if ( response.data && typeof response.data === 'object' && response.data.message ) {
-				return response.data.message;
-			}
-
-			// Check for response.data as string.
-			if ( response.data && typeof response.data === 'string' ) {
-				return response.data;
-			}
-
-			// Check for response.message.
-			if ( response.message && typeof response.message === 'string' ) {
-				return response.message;
-			}
-
-			return wpdiData.i18n.error;
+			WPDI.request( {
+				action: 'wpdi_cleanup',
+				cleanup_action: $button.data( 'action' ),
+				confirmed: '1'
+			}, $button ).done( WPDI.handleMutation );
 		},
 
-		/**
-		 * Refresh statistics via AJAX.
-		 *
-		 * @param {Event} e Click event (optional).
-		 */
-		refreshStats: function( e ) {
-			if ( e ) {
-				e.preventDefault();
-			}
-
-			var $btn = $( '#wpdi-refresh' );
-			$btn.prop( 'disabled', true );
-
-			$.ajax( {
-				url: wpdiData.ajaxUrl,
-				type: 'POST',
-				data: {
-					action: 'wpdi_get_stats',
-					nonce: wpdiData.nonce
-				},
-				success: function( response ) {
-					$btn.prop( 'disabled', false );
-
-					if ( response.success ) {
-						WPDI.updateUI( response.data );
+		refresh: function( event ) {
+			event.preventDefault();
+			var $button = $( event.currentTarget );
+			WPDI.request( { action: 'wpdi_get_stats' }, $button ).done( function( response ) {
+				if ( ! response.success ) {
+					WPDI.showError( response );
+					return;
+				}
+				var stats = response.data;
+				$( '.wpdi-score-value' ).first().text( stats.health_score );
+				var values = [ WPDI.formatBytes( stats.total_db_size ), WPDI.formatBytes( stats.autoload_size ), Number( stats.autoload_count ).toLocaleString(), stats.object_cache_enabled ? 'Yes' : 'No' ];
+				$( '.wpdi-stat-value' ).each( function( index ) {
+					if ( values[ index ] !== undefined ) {
+						$( this ).text( values[ index ] );
 					}
-				},
-				error: function() {
-					$btn.prop( 'disabled', false );
-					WPDI.showToast( wpdiData.i18n.error, 'error' );
+				} );
+				WPDI.toast( 'Statistics refreshed.', 'success' );
+			} ).fail( WPDI.networkError );
+		},
+
+		preview: function( event ) {
+			event.preventDefault();
+			var $button = $( event.currentTarget );
+			WPDI.request( { action: 'wpdi_option_preview', option_name: $button.data( 'option' ) }, $button ).done( function( response ) {
+				if ( ! response.success ) {
+					WPDI.showError( response );
+					return;
 				}
+				var suffix = response.data.truncated ? '\n\n[preview truncated]' : '';
+				$( '#wpdi-option-preview pre' ).text( response.data.name + '\n\n' + response.data.preview + suffix );
+				$( '#wpdi-option-preview' ).prop( 'hidden', false )[ 0 ].scrollIntoView( { behavior: 'smooth', block: 'nearest' } );
+			} ).fail( WPDI.networkError );
+		},
+
+		changeAutoload: function( event ) {
+			event.preventDefault();
+			var $button = $( event.currentTarget );
+			if ( wpdiData.readOnly || ! window.confirm( wpdiData.i18n.confirmProceed ) ) {
+				return;
+			}
+			WPDI.request( { action: 'wpdi_change_autoload', option_name: $button.data( 'option' ), enabled: String( $button.data( 'enabled' ) ), confirmed: '1' }, $button ).done( WPDI.handleMutation );
+		},
+
+		restore: function( event ) {
+			event.preventDefault();
+			var $button = $( event.currentTarget );
+			if ( wpdiData.readOnly || ! window.confirm( wpdiData.i18n.confirmRestore ) ) {
+				return;
+			}
+			WPDI.request( { action: 'wpdi_restore_snapshot', snapshot_id: $button.data( 'snapshot' ), confirmed: '1' }, $button ).done( WPDI.handleMutation );
+		},
+
+		explain: function( event ) {
+			event.preventDefault();
+			var $button = $( event.currentTarget );
+			var $result = $( '#wpdi-ai-result' );
+			$result.prop( 'hidden', false ).find( 'pre' ).text( wpdiData.i18n.aiWorking );
+			WPDI.request( { action: 'wpdi_ai_explain', focus: $( '#wpdi-ai-focus' ).val() }, $button ).done( function( response ) {
+				if ( ! response.success ) {
+					$result.prop( 'hidden', true );
+					WPDI.showError( response );
+					return;
+				}
+				$result.find( 'pre' ).text( response.data.explanation );
+			} ).fail( function() {
+				$result.prop( 'hidden', true );
+				WPDI.networkError();
 			} );
 		},
 
-		/**
-		 * Update UI with new stats.
-		 *
-		 * @param {Object} stats Database statistics.
-		 */
-		updateUI: function( stats ) {
-			// Update gauge.
-			this.updateGauge( stats.health_score );
-			$( '.wpdi-health-score' ).attr( 'data-score', stats.health_score );
-
-			// Update stat values (order matches template).
-			var statValues = [
-				this.formatBytes( stats.total_db_size ),
-				this.formatBytes( stats.autoload_size ),
-				stats.autoload_count.toLocaleString(),
-				stats.object_cache_enabled ? 'Yes' : 'No'
-			];
-
-			$( '.wpdi-stat-value' ).each( function( index ) {
-				if ( statValues[ index ] !== undefined ) {
-					$( this ).text( statValues[ index ] );
-				}
-			} );
-
-			// Update cleanup counts.
-			var countMap = {
-				'expired_transients': stats.expired_transients,
-				'all_transients': stats.transient_count,
-				'revisions': stats.revisions_count,
-				'auto_drafts': stats.auto_drafts_count,
-				'trashed_posts': stats.trashed_posts_count,
-				'orphaned_postmeta': stats.orphaned_postmeta,
-				'orphaned_commentmeta': stats.orphaned_commentmeta,
-				'spam_comments': stats.spam_comments,
-				'trashed_comments': stats.trashed_comments
-			};
-
-			$( '.wpdi-cleanup-btn' ).each( function() {
-				var $btn = $( this );
-				var action = $btn.data( 'action' );
-				var count = countMap[ action ];
-
-				if ( count !== undefined ) {
-					$btn.closest( '.wpdi-cleanup-item' ).find( '.wpdi-count' ).text( count.toLocaleString() );
-					// Don't re-enable if read-only mode is active.
-					if ( ! wpdiData.readOnly ) {
-						$btn.prop( 'disabled', count === 0 );
-					}
-				}
-			} );
+		handleMutation: function( response ) {
+			if ( response.success ) {
+				WPDI.toast( response.data.message || 'Operation completed.', 'success' );
+				window.setTimeout( function() { window.location.reload(); }, 900 );
+				return;
+			}
+			WPDI.showError( response );
 		},
 
-		/**
-		 * Format bytes to human readable.
-		 *
-		 * @param {number} bytes Number of bytes.
-		 * @return {string} Formatted string.
-		 */
+		showError: function( response ) {
+			var message = wpdiData.i18n.error;
+			if ( response && response.data ) {
+				message = typeof response.data === 'string' ? response.data : ( response.data.message || message );
+			}
+			WPDI.toast( message, 'error' );
+		},
+
+		networkError: function( xhr ) {
+			var response = xhr && xhr.responseJSON ? xhr.responseJSON : null;
+			WPDI.showError( response );
+		},
+
 		formatBytes: function( bytes ) {
-			if ( bytes >= 1073741824 ) {
-				return ( bytes / 1073741824 ).toFixed( 2 ) + ' GB';
-			} else if ( bytes >= 1048576 ) {
-				return ( bytes / 1048576 ).toFixed( 2 ) + ' MB';
-			} else if ( bytes >= 1024 ) {
-				return ( bytes / 1024 ).toFixed( 2 ) + ' KB';
-			}
+			bytes = Number( bytes ) || 0;
+			if ( bytes >= 1073741824 ) { return ( bytes / 1073741824 ).toFixed( 2 ) + ' GB'; }
+			if ( bytes >= 1048576 ) { return ( bytes / 1048576 ).toFixed( 2 ) + ' MB'; }
+			if ( bytes >= 1024 ) { return ( bytes / 1024 ).toFixed( 2 ) + ' KB'; }
 			return bytes + ' B';
 		},
 
-		/**
-		 * Show toast notification.
-		 *
-		 * @param {string} message Message to display.
-		 * @param {string} type    Type (success or error).
-		 */
-		showToast: function( message, type ) {
-			var $toast = $( '<div class="wpdi-toast"></div>' ).text( message );
-			
-			if ( type ) {
-				$toast.addClass( type );
-			}
-
+		toast: function( message, type ) {
+			var $toast = $( '<div class="wpdi-toast" role="status"></div>' ).text( message ).addClass( type || '' );
 			$( 'body' ).append( $toast );
-
-			setTimeout( function() {
-				$toast.fadeOut( 300, function() {
-					$toast.remove();
-				} );
-			}, 3000 );
+			window.setTimeout( function() { $toast.fadeOut( 250, function() { $toast.remove(); } ); }, 4000 );
 		}
 	};
 
-	$( document ).ready( function() {
-		WPDI.init();
-	} );
-
+	$( function() { WPDI.init(); } );
 } )( jQuery );

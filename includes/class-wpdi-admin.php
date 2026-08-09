@@ -515,7 +515,9 @@ class WPDI_Admin {
 		) as $key => $label ) {
 			echo '<div class="wpdi-card"><h2>' . esc_html( $label ) . '</h2><dl class="wpdi-detail-list">';
 			foreach ( $report['health'][ $key ] as $metric => $value ) {
-				if ( is_bool( $value ) || null === $value ) {
+				if ( null === $value ) {
+					$display = __( 'Unavailable', 'sac-database-inspector' );
+				} elseif ( is_bool( $value ) ) {
 					$display = $value ? __( 'Yes', 'sac-database-inspector' ) : __( 'No', 'sac-database-inspector' );
 				} else {
 					$display = is_numeric( $value ) ? number_format_i18n( $value ) : (string) $value;

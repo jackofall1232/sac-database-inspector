@@ -113,8 +113,9 @@ class WPDI_Exporter {
 			},
 			$row
 		);
-		// PHP 8.4 deprecates relying on the default $escape; keep the historical value explicitly.
-		fputcsv( $stream, $row, ',', '"', '\\' );
+		// An empty $escape disables non-standard backslash escaping (RFC 4180)
+		// and satisfies PHP 8.4's requirement to pass the parameter explicitly.
+		fputcsv( $stream, $row, ',', '"', '' );
 	}
 
 	/**

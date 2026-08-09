@@ -81,8 +81,11 @@ class WPDI_Report {
 			)
 		);
 
-		$args['sections'] = array_map( 'sanitize_key', (array) $args['sections'] );
-		$cache_key        = md5( (string) wp_json_encode( $args ) );
+		$args['sections'] = array_values( array_unique( array_map( 'sanitize_key', (array) $args['sections'] ) ) );
+		sort( $args['sections'] );
+		ksort( $args );
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize -- Deterministic hash of internal scalar arguments; never unserialized.
+		$cache_key = md5( serialize( $args ) );
 		if ( isset( $this->report_cache[ $cache_key ] ) ) {
 			return $this->report_cache[ $cache_key ];
 		}

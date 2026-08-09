@@ -44,7 +44,9 @@ function is_multisite() {
 	return false;
 }
 
-define( 'DB_NAME', 'wpdi_test_database' );
+if ( ! defined( 'DB_NAME' ) ) {
+	define( 'DB_NAME', 'wpdi_test_database' );
+}
 
 function sanitize_text_field( $value ) {
 	return trim( preg_replace( '/[\r\n\t ]+/', ' ', (string) $value ) );

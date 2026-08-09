@@ -50,7 +50,7 @@ jobs:
         with:
           name: sac-database-inspector-zip
           path: build/sac-database-inspector.zip
-      - uses: wordpress/plugin-check-action@v1.0.6
+      - uses: wordpress/plugin-check-action@v1
         with:
           build-dir: ./build/sac-database-inspector
           wp-version: '7.0'

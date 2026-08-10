@@ -63,9 +63,25 @@ class WPDI_AI {
 			. "Clearly label your response as interpretation, not a measured fact. Focus: {$focus}.\n\n"
 			. wp_json_encode( $context, JSON_UNESCAPED_SLASHES );
 
-		$result = wp_ai_client_prompt( $prompt )
-			->using_temperature( 0.2 )
-			->generate_text_result();
+		// No sampling parameters are forced: several providers and models
+		// (notably reasoning models) reject an explicit temperature with a
+		// 400 error, and provider defaults are appropriate for advisory text.
+		try {
+			$result = wp_ai_client_prompt( $prompt )->generate_text_result();
+		} catch ( Throwable $exception ) {
+			$detail = sanitize_text_field( (string) $exception->getMessage() );
+			if ( strlen( $detail ) > 200 ) {
+				$detail = substr( $detail, 0, 200 ) . '…';
+			}
+			return new WP_Error(
+				'wpdi_ai_request_failed',
+				sprintf(
+					/* translators: %s: short provider error detail. */
+					__( 'The AI request could not be completed: %s', 'sac-database-inspector' ),
+					$detail
+				)
+			);
+		}
 
 		if ( is_wp_error( $result ) ) {
 			return $result;

@@ -6,7 +6,7 @@
  */
 
 define( 'ABSPATH', dirname( __DIR__ ) . '/' );
-define( 'WPDI_VERSION', '1.1.0' );
+define( 'WPDI_VERSION', '1.1.1' );
 
 class WP_Error {
 	private $message;

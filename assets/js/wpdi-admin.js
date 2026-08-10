@@ -131,11 +131,14 @@
 		},
 
 		dismissReviewSilently: function( event ) {
-			// The review link opens in a new tab; record the dismissal in the background.
+			// The review link opens in a new tab; record the dismissal in the background
+			// and only hide the banner once the server has stored it, so a failed
+			// request cannot silently lose the permanent dismissal.
 			var $banner = $( event.currentTarget ).closest( '.wpdi-review-banner' );
-			$.post( wpdiData.ajaxUrl, { action: 'wpdi_dismiss_review', nonce: wpdiData.nonce } );
-			$banner.slideUp( 200, function() {
-				$banner.remove();
+			$.post( wpdiData.ajaxUrl, { action: 'wpdi_dismiss_review', nonce: wpdiData.nonce } ).done( function() {
+				$banner.slideUp( 200, function() {
+					$banner.remove();
+				} );
 			} );
 		},
 

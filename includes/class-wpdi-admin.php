@@ -315,6 +315,9 @@ class WPDI_Admin {
 	 * @param array $result Service result.
 	 */
 	private function mark_first_success( $result ) {
+		if ( is_wp_error( $result ) || ! is_array( $result ) ) {
+			return;
+		}
 		$changed = 0;
 		if ( isset( $result['deleted'] ) ) {
 			$changed = (int) $result['deleted'];
@@ -738,7 +741,12 @@ else :
 			<?php
 else :
 	?>
-			<div class="notice notice-info inline"><p><?php esc_html_e( 'AI explanation is unavailable. WordPress 7.0 AI Client and a configured text-generation connector are required; all deterministic features remain available.', 'sac-database-inspector' ); ?></p><p><a class="button" href="<?php echo esc_url( admin_url( 'options-connectors.php' ) ); ?>"><?php esc_html_e( 'Open Settings → Connectors', 'sac-database-inspector' ); ?></a></p></div><?php endif; ?>
+			<div class="notice notice-info inline"><p><?php esc_html_e( 'AI explanation is unavailable. WordPress 7.0 AI Client and a configured text-generation connector are required; all deterministic features remain available.', 'sac-database-inspector' ); ?></p>
+			<?php
+			if ( function_exists( 'wp_ai_client_prompt' ) ) :
+				?>
+				<p><a class="button" href="<?php echo esc_url( admin_url( 'options-connectors.php' ) ); ?>"><?php esc_html_e( 'Open Settings → Connectors', 'sac-database-inspector' ); ?></a></p><?php endif; ?>
+			</div><?php endif; ?>
 		</div>
 		<?php
 	}

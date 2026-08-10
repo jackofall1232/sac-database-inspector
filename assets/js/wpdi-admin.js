@@ -18,6 +18,8 @@
 			$( '.wpdi-autoload-toggle' ).on( 'click', this.changeAutoload );
 			$( '.wpdi-restore-snapshot' ).on( 'click', this.restore );
 			$( '#wpdi-ai-explain' ).on( 'click', this.explain );
+			$( '.wpdi-review-dismiss' ).on( 'click', this.dismissReview );
+			$( '.wpdi-review-link' ).on( 'click', this.dismissReviewSilently );
 			if ( wpdiData.readOnly ) {
 				$( '.wpdi-cleanup-btn, .wpdi-autoload-toggle, .wpdi-restore-snapshot' ).prop( 'disabled', true );
 			}
@@ -115,6 +117,25 @@
 			} ).fail( function() {
 				$result.prop( 'hidden', true );
 				WPDI.networkError();
+			} );
+		},
+
+		dismissReview: function( event ) {
+			event.preventDefault();
+			var $button = $( event.currentTarget );
+			WPDI.request( { action: 'wpdi_dismiss_review' }, $button ).done( function() {
+				$button.closest( '.wpdi-review-banner' ).slideUp( 200, function() {
+					$( this ).remove();
+				} );
+			} ).fail( WPDI.networkError );
+		},
+
+		dismissReviewSilently: function( event ) {
+			// The review link opens in a new tab; record the dismissal in the background.
+			var $banner = $( event.currentTarget ).closest( '.wpdi-review-banner' );
+			$.post( wpdiData.ajaxUrl, { action: 'wpdi_dismiss_review', nonce: wpdiData.nonce } );
+			$banner.slideUp( 200, function() {
+				$banner.remove();
 			} );
 		},
 

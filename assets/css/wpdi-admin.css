@@ -1091,3 +1091,50 @@
 		transition-duration: 0.01ms !important;
 	}
 }
+
+/* ------------------------------------------------------------------
+ * Review invitation banner (one-time, plugin page only)
+ * ------------------------------------------------------------------ */
+
+.wpdi-wrap .wpdi-review-banner {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--wpdi-space-3);
+	margin: var(--wpdi-space-3) 0;
+	padding: var(--wpdi-space-3) var(--wpdi-space-4);
+	background: linear-gradient(135deg, var(--wpdi-accent-soft), var(--wpdi-surface));
+	border: 1px solid var(--wpdi-accent-border);
+	border-left: 4px solid var(--wpdi-accent);
+}
+
+.wpdi-wrap .wpdi-review-copy strong {
+	display: block;
+	margin-bottom: var(--wpdi-space-1);
+	color: var(--wpdi-ink);
+	font-size: 14px;
+}
+
+.wpdi-wrap .wpdi-review-copy p {
+	margin: 0;
+	color: var(--wpdi-ink-secondary);
+	font-size: 13px;
+}
+
+.wpdi-wrap .wpdi-review-actions {
+	display: flex;
+	flex: none;
+	align-items: center;
+	gap: var(--wpdi-space-2);
+}
+
+@media (max-width: 600px) {
+	.wpdi-wrap .wpdi-review-banner {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.wpdi-wrap .wpdi-review-actions {
+		justify-content: flex-end;
+	}
+}

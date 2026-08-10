@@ -94,6 +94,7 @@ class WPDI_Admin {
 		add_action( 'wp_ajax_wpdi_change_autoload', array( $this, 'ajax_change_autoload' ) );
 		add_action( 'wp_ajax_wpdi_restore_snapshot', array( $this, 'ajax_restore_snapshot' ) );
 		add_action( 'wp_ajax_wpdi_ai_explain', array( $this, 'ajax_ai_explain' ) );
+		add_action( 'wp_ajax_wpdi_dismiss_review', array( $this, 'ajax_dismiss_review' ) );
 		add_action( 'admin_post_wpdi_export_report', array( $this, 'export_report' ) );
 		add_filter( 'site_status_tests', array( $this, 'register_site_health_test' ) );
 	}
@@ -255,6 +256,7 @@ class WPDI_Admin {
 		$result = $this->cleanup->perform( $action );
 		/** Fires after a cleanup action, preserving the original hook. */
 		do_action( 'wpdi_after_cleanup', $action, $result );
+		$this->mark_first_success( $result );
 		$this->send_result( $result );
 	}
 
@@ -302,7 +304,36 @@ class WPDI_Admin {
 		$name = isset( $_POST['option_name'] ) ? sanitize_text_field( wp_unslash( $_POST['option_name'] ) ) : '';
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- authorize_ajax() verified the AJAX nonce above.
 		$enabled = isset( $_POST['enabled'] ) && '1' === sanitize_text_field( wp_unslash( $_POST['enabled'] ) );
-		$this->send_result( $this->cleanup->change_autoload( $name, $enabled ) );
+		$result  = $this->cleanup->change_autoload( $name, $enabled );
+		$this->mark_first_success( $result );
+		$this->send_result( $result );
+	}
+
+	/**
+	 * Record the first successful maintenance action for the one-time review invitation.
+	 *
+	 * @param array $result Service result.
+	 */
+	private function mark_first_success( $result ) {
+		if ( is_wp_error( $result ) || ! is_array( $result ) ) {
+			return;
+		}
+		$changed = 0;
+		if ( isset( $result['deleted'] ) ) {
+			$changed = (int) $result['deleted'];
+		} elseif ( isset( $result['changed'] ) ) {
+			$changed = (int) $result['changed'];
+		}
+		if ( ! empty( $result['success'] ) && $changed > 0 && ! get_option( 'wpdi_first_success_at' ) ) {
+			update_option( 'wpdi_first_success_at', time(), false );
+		}
+	}
+
+	/** Permanently dismiss the one-time review invitation. */
+	public function ajax_dismiss_review() {
+		$this->authorize_ajax();
+		update_option( 'wpdi_review_dismissed', time(), false );
+		wp_send_json_success( array( 'dismissed' => true ) );
 	}
 
 	/** Restore a supported safety snapshot. */
@@ -396,6 +427,7 @@ class WPDI_Admin {
 		<div class="wrap wpdi-wrap">
 			<h1><?php esc_html_e( 'SAC Database Inspector', 'sac-database-inspector' ); ?></h1>
 			<p class="description"><?php esc_html_e( 'Measured database facts are shown separately from heuristic ownership and optional AI interpretation.', 'sac-database-inspector' ); ?></p>
+			<?php $this->render_review_banner(); ?>
 			<nav class="nav-tab-wrapper wpdi-tabs" aria-label="<?php esc_attr_e( 'Database Inspector sections', 'sac-database-inspector' ); ?>">
 				<?php foreach ( $tabs as $slug => $label ) : ?>
 					<a class="nav-tab <?php echo $slug === $tab ? 'nav-tab-active' : ''; ?>" href="
@@ -705,10 +737,16 @@ else :
 		if ( $this->ai->is_available() ) :
 			?>
 			<select id="wpdi-ai-focus"><option value="health"><?php esc_html_e( 'Explain database health', 'sac-database-inspector' ); ?></option><option value="priorities"><?php esc_html_e( 'What should I investigate first?', 'sac-database-inspector' ); ?></option><option value="footprints"><?php esc_html_e( 'Explain plugin footprints', 'sac-database-inspector' ); ?></option><option value="autoload"><?php esc_html_e( 'Explain autoload impact', 'sac-database-inspector' ); ?></option><option value="ghost_data"><?php esc_html_e( 'Explain ghost findings', 'sac-database-inspector' ); ?></option></select> <button id="wpdi-ai-explain" class="button button-secondary"><?php esc_html_e( 'Request AI interpretation', 'sac-database-inspector' ); ?></button><div id="wpdi-ai-result" class="wpdi-ai-result" hidden><strong><?php esc_html_e( 'AI interpretation — not a measured SAC fact', 'sac-database-inspector' ); ?></strong><pre></pre></div>
+			<p class="description"><?php esc_html_e( 'Responses come from the text-generation provider selected under Settings → Connectors.', 'sac-database-inspector' ); ?> <a href="<?php echo esc_url( admin_url( 'options-connectors.php' ) ); ?>"><?php esc_html_e( 'Manage connectors', 'sac-database-inspector' ); ?></a></p>
 			<?php
 else :
 	?>
-			<div class="notice notice-info inline"><p><?php esc_html_e( 'AI explanation is unavailable. WordPress 7.0 AI Client and a configured text-generation connector are required; all deterministic features remain available.', 'sac-database-inspector' ); ?></p></div><?php endif; ?>
+			<div class="notice notice-info inline"><p><?php esc_html_e( 'AI explanation is unavailable. WordPress 7.0 AI Client and a configured text-generation connector are required; all deterministic features remain available.', 'sac-database-inspector' ); ?></p>
+			<?php
+			if ( function_exists( 'wp_ai_client_prompt' ) ) :
+				?>
+				<p><a class="button" href="<?php echo esc_url( admin_url( 'options-connectors.php' ) ); ?>"><?php esc_html_e( 'Open Settings → Connectors', 'sac-database-inspector' ); ?></a></p><?php endif; ?>
+			</div><?php endif; ?>
 		</div>
 		<?php
 	}
@@ -739,6 +777,30 @@ endif;
 ?>
 </td></tr><?php endforeach; ?>
 		</tbody></table></div></div>
+		<?php
+	}
+
+	/**
+	 * Render the one-time review invitation on the plugin page only.
+	 *
+	 * Shown after the first successful maintenance action, dismissible in one
+	 * click, and never repeated once dismissed.
+	 */
+	private function render_review_banner() {
+		if ( ! get_option( 'wpdi_first_success_at' ) || get_option( 'wpdi_review_dismissed' ) ) {
+			return;
+		}
+		?>
+		<div class="wpdi-card wpdi-review-banner" role="status">
+			<div class="wpdi-review-copy">
+				<strong><?php esc_html_e( 'Is SAC Database Inspector helping you?', 'sac-database-inspector' ); ?></strong>
+				<p><?php esc_html_e( 'You have already tidied part of your database with it. An honest review helps other administrators find the plugin — and this note will never appear again.', 'sac-database-inspector' ); ?></p>
+			</div>
+			<div class="wpdi-review-actions">
+				<a class="button button-primary wpdi-review-link" href="https://wordpress.org/support/plugin/sac-database-inspector/reviews/#new-post" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Leave a review', 'sac-database-inspector' ); ?></a>
+				<button type="button" class="button wpdi-review-dismiss"><?php esc_html_e( 'No thanks', 'sac-database-inspector' ); ?></button>
+			</div>
+		</div>
 		<?php
 	}
 

@@ -4,7 +4,7 @@ Tags: database, autoload, database cleaner, performance, diagnostics
 Requires at least: 7.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.1.1
+Stable tag: 1.1.2
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -15,6 +15,14 @@ Inspect WordPress database health, plugin footprints, autoloaded options, and qu
 SAC Database Inspector helps administrators understand what is using the WordPress database before deciding whether maintenance is appropriate.
 
 It is inspection-first: no background cleanup, “clean everything” action, telemetry, paid feature, or automatic external request is included.
+
+= Modern dashboard =
+
+* Clean, card-based interface designed for quick scanning
+* Severity-colored health score with a plain-language rating
+* Refined data tables, stat tiles, and status badges
+* Fully responsive layout that works on small screens
+* No external fonts, scripts, or tracking of any kind
 
 = Database diagnostics =
 
@@ -92,19 +100,23 @@ No. AI is an optional explanation layer. It receives a capped, redacted metadata
 
 No. AI UI is enabled only when WordPress reports that configured text generation is supported. All other functionality is independent of AI.
 
+= Why is the AI interpretation unavailable on my site? =
+
+The optional AI features use the WordPress 7.0 AI Client. WordPress needs a text-generation connector configured under Settings → Connectors; the Reports & AI tab links there directly. Every deterministic diagnostic works without it.
+
 = Can I disable every maintenance action? =
 
 Yes. Add `add_filter( 'wpdi_read_only', '__return_true' );` in site-specific code.
 
 == Screenshots ==
 
-1. Database health overview and bounded maintenance actions
-2. Runtime, storage, and maintenance health categories
-3. Conservative plugin database footprints
-4. Paginated autoload inspector
-5. Read-only ghost data findings
-6. Redacted reports and optional AI interpretation
-7. Safety snapshot history and restoration
+1. Overview dashboard with the severity-colored health score and bounded maintenance actions
+2. Runtime, storage, and maintenance health categories with explainable score penalties
+3. Conservative plugin database footprints with ownership confidence
+4. Paginated, searchable autoload inspector with safe previews
+5. Read-only ghost data findings with evidence and confidence
+6. Redacted report exports and optional AI interpretation with connector guidance
+7. Safety snapshot history and supported restoration
 
 == Privacy and external services ==
 
@@ -113,6 +125,13 @@ SAC has no telemetry or tracking. Database inspection and exports are local.
 If an administrator explicitly requests an AI explanation, SAC passes a capped and redacted metadata-only diagnostic context to the provider selected through WordPress Settings → Connectors. The external service, data handling, and terms depend on the connector/provider configured by the site owner. SAC does not store provider credentials and does not send raw option values, database credentials, WordPress salts, private keys, or authentication tokens.
 
 == Changelog ==
+
+= 1.1.2 =
+
+* Added new WordPress.org screenshots showing the redesigned dashboard.
+* Added a direct Settings → Connectors link where AI interpretation is configured, and clearer guidance when no connector is set up.
+* Added a single, dismissible review invitation shown only on the plugin's own page after the first successful maintenance action. It never repeats once dismissed and sends no data anywhere.
+* Refreshed the plugin description and FAQ. No diagnostic behavior changed.
 
 = 1.1.1 =
 

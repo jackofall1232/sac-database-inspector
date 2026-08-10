@@ -25,6 +25,8 @@ if ( is_multisite() ) {
 		foreach ( $wpdi_site_ids as $wpdi_site_id ) {
 			switch_to_blog( $wpdi_site_id );
 			delete_option( 'wpdi_safety_snapshots' );
+			delete_option( 'wpdi_first_success_at' );
+			delete_option( 'wpdi_review_dismissed' );
 			restore_current_blog();
 		}
 		$wpdi_site_count = count( $wpdi_site_ids );
@@ -32,4 +34,6 @@ if ( is_multisite() ) {
 	} while ( 100 === $wpdi_site_count );
 } else {
 	delete_option( 'wpdi_safety_snapshots' );
+	delete_option( 'wpdi_first_success_at' );
+	delete_option( 'wpdi_review_dismissed' );
 }

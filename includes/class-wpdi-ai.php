@@ -69,12 +69,16 @@ class WPDI_AI {
 		try {
 			$result = wp_ai_client_prompt( $prompt )->generate_text_result();
 		} catch ( Throwable $exception ) {
+			$detail = sanitize_text_field( (string) $exception->getMessage() );
+			if ( strlen( $detail ) > 200 ) {
+				$detail = substr( $detail, 0, 200 ) . '…';
+			}
 			return new WP_Error(
 				'wpdi_ai_request_failed',
 				sprintf(
-					/* translators: %s: provider error message. */
-					__( 'The AI provider rejected the request: %s', 'sac-database-inspector' ),
-					$exception->getMessage()
+					/* translators: %s: short provider error detail. */
+					__( 'The AI request could not be completed: %s', 'sac-database-inspector' ),
+					$detail
 				)
 			);
 		}

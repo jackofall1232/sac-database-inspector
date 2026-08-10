@@ -1,255 +1,467 @@
 /**
- * Database Inspector Admin Styles
+ * SAC Database Inspector admin design system.
+ *
+ * Light-theme dashboard styling scoped to .wpdi-wrap. The toast is the one
+ * intentional exception: wpdi-admin.js appends it to <body>, so its
+ * (wpdi-prefixed) selector lives outside the scope.
  *
  * @package Database_Inspector
  */
 
+/* ------------------------------------------------------------------
+ * 1. Design tokens
+ * ------------------------------------------------------------------ */
+
 .wpdi-wrap {
+	/* Accent — deep indigo. */
+	--wpdi-accent: #4f46e5;
+	--wpdi-accent-strong: #4338ca;
+	--wpdi-accent-soft: #eef2ff;
+	--wpdi-accent-border: #c7d2fe;
+
+	/* Ink. */
+	--wpdi-ink: #0f172a;
+	--wpdi-ink-secondary: #334155;
+	--wpdi-ink-muted: #64748b;
+
+	/* Surfaces. */
+	--wpdi-surface: #ffffff;
+	--wpdi-surface-subtle: #f8fafc;
+	--wpdi-surface-sunken: #f1f5f9;
+
+	/* Borders. */
+	--wpdi-border: #e2e8f0;
+	--wpdi-border-strong: #cbd5e1;
+
+	/* Semantic: good / warning / critical. */
+	--wpdi-good: #15803d;
+	--wpdi-good-bg: #ecfdf5;
+	--wpdi-good-border: #a7f3d0;
+	--wpdi-good-vivid: #22c55e;
+	--wpdi-warning: #92400e;
+	--wpdi-warning-strong: #b45309;
+	--wpdi-warning-bg: #fffbeb;
+	--wpdi-warning-border: #fde68a;
+	--wpdi-warning-vivid: #f59e0b;
+	--wpdi-critical: #b91c1c;
+	--wpdi-critical-bg: #fef2f2;
+	--wpdi-critical-border: #fecaca;
+	--wpdi-critical-vivid: #ef4444;
+
+	/* Info tone (notices). */
+	--wpdi-info: #1e40af;
+	--wpdi-info-bg: #eff6ff;
+	--wpdi-info-border: #bfdbfe;
+	--wpdi-info-vivid: #3b82f6;
+
+	/* Spacing — 8px scale. */
+	--wpdi-space-1: 4px;
+	--wpdi-space-2: 8px;
+	--wpdi-space-3: 16px;
+	--wpdi-space-4: 24px;
+	--wpdi-space-5: 32px;
+	--wpdi-space-6: 48px;
+
+	/* Shape and depth. */
+	--wpdi-radius: 12px;
+	--wpdi-radius-sm: 8px;
+	--wpdi-radius-xs: 6px;
+	--wpdi-radius-pill: 999px;
+	--wpdi-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 16px rgba(15, 23, 42, 0.05);
+	--wpdi-shadow-lifted: 0 4px 8px rgba(15, 23, 42, 0.06), 0 16px 40px rgba(15, 23, 42, 0.12);
+
+	/* Type. */
+	--wpdi-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+	--wpdi-font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
 	max-width: 1200px;
+	font-family: var(--wpdi-font);
+	color: var(--wpdi-ink-secondary);
+	padding-bottom: var(--wpdi-space-6);
 }
+
+/* ------------------------------------------------------------------
+ * 2. Page header
+ * ------------------------------------------------------------------ */
 
 .wpdi-wrap h1 {
-	margin-bottom: 20px;
-}
-
-/* Dashboard Grid */
-.wpdi-dashboard {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 20px;
-	margin-bottom: 20px;
-}
-
-@media (max-width: 782px) {
-	.wpdi-dashboard {
-		grid-template-columns: 1fr;
-	}
-}
-
-/* Cards */
-.wpdi-card {
-	background: #fff;
-	border: 1px solid #c3c4c7;
-	border-radius: 4px;
-	padding: 20px;
-	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
-}
-
-.wpdi-card h2 {
-	margin: 0 0 15px;
-	padding: 0;
-	font-size: 14px;
-	font-weight: 600;
-	color: #1d2327;
-	border-bottom: 1px solid #f0f0f1;
-	padding-bottom: 10px;
-}
-
-/* Health Gauge */
-.wpdi-health-card {
-	text-align: center;
-}
-
-.wpdi-gauge-container {
-	position: relative;
-	max-width: 300px;
-	margin: 0 auto;
-}
-
-.wpdi-gauge {
-	width: 100%;
-	height: auto;
-}
-
-.wpdi-gauge-bg {
-	opacity: 0.3;
-}
-
-.wpdi-gauge-needle {
-	transform-origin: 100px 100px;
-	transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.wpdi-gauge-labels {
-	display: flex;
-	justify-content: space-between;
-	padding: 0 10px;
-	margin-top: -10px;
-	font-size: 11px;
-	color: #646970;
-}
-
-.wpdi-label-good {
-	color: #22c55e;
-}
-
-.wpdi-label-warning {
-	color: #eab308;
-}
-
-.wpdi-label-critical {
-	color: #ef4444;
-}
-
-.wpdi-health-score {
-	margin-top: 10px;
-}
-
-.wpdi-score-value {
-	font-size: 48px;
+	margin: var(--wpdi-space-3) 0 var(--wpdi-space-1);
+	font-family: var(--wpdi-font);
+	font-size: 24px;
 	font-weight: 700;
+	letter-spacing: -0.02em;
+	color: var(--wpdi-ink);
+}
+
+.wpdi-wrap > p.description {
+	margin: 0 0 var(--wpdi-space-4);
+	max-width: 70ch;
+	font-size: 13px;
+	color: var(--wpdi-ink-muted);
+}
+
+/* ------------------------------------------------------------------
+ * 3. Tabs — modern underline bar (overrides WP nav-tab in-scope only)
+ * ------------------------------------------------------------------ */
+
+.wpdi-wrap .wpdi-tabs.nav-tab-wrapper {
+	margin: 0 0 var(--wpdi-space-4);
+	padding: 0;
+	border-bottom: 1px solid var(--wpdi-border);
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--wpdi-space-1);
 	line-height: 1;
 }
 
-.wpdi-health-score[data-score] .wpdi-score-value {
-	color: #22c55e;
+.wpdi-wrap .wpdi-tabs .nav-tab {
+	float: none;
+	display: inline-block;
+	margin: 0 0 -1px;
+	padding: 10px 14px 12px;
+	background: transparent;
+	border: 0;
+	border-bottom: 2px solid transparent;
+	border-radius: var(--wpdi-radius-xs) var(--wpdi-radius-xs) 0 0;
+	font-family: var(--wpdi-font);
+	font-size: 13px;
+	font-weight: 500;
+	line-height: 1.4;
+	color: var(--wpdi-ink-muted);
+	text-decoration: none;
+	transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
 }
 
-.wpdi-health-score[data-score]:not([data-score="0"]):not([data-score="1"]):not([data-score="2"]):not([data-score="3"]):not([data-score="4"]):not([data-score="5"]):not([data-score="6"]):not([data-score="7"]):not([data-score="8"]):not([data-score="9"]):not([data-score="10"]):not([data-score="11"]):not([data-score="12"]):not([data-score="13"]):not([data-score="14"]):not([data-score="15"]):not([data-score="16"]):not([data-score="17"]):not([data-score="18"]):not([data-score="19"]):not([data-score="20"]):not([data-score="21"]):not([data-score="22"]):not([data-score="23"]):not([data-score="24"]):not([data-score="25"]):not([data-score="26"]):not([data-score="27"]):not([data-score="28"]):not([data-score="29"]):not([data-score="30"]):not([data-score="31"]):not([data-score="32"]):not([data-score="33"]):not([data-score="34"]):not([data-score="35"]):not([data-score="36"]):not([data-score="37"]):not([data-score="38"]):not([data-score="39"]):not([data-score="40"]) .wpdi-score-value {
-	color: #eab308;
+.wpdi-wrap .wpdi-tabs .nav-tab:hover,
+.wpdi-wrap .wpdi-tabs .nav-tab:focus {
+	background: var(--wpdi-accent-soft);
+	color: var(--wpdi-accent-strong);
+	box-shadow: none;
 }
 
-.wpdi-score-label {
-	font-size: 16px;
-	color: #646970;
+.wpdi-wrap .wpdi-tabs .nav-tab-active,
+.wpdi-wrap .wpdi-tabs .nav-tab-active:hover,
+.wpdi-wrap .wpdi-tabs .nav-tab-active:focus {
+	background: transparent;
+	border-bottom-color: var(--wpdi-accent);
+	color: var(--wpdi-accent-strong);
+	font-weight: 600;
 }
 
-/* Stats Grid */
+/* ------------------------------------------------------------------
+ * 4. Cards
+ * ------------------------------------------------------------------ */
+
+.wpdi-card {
+	background: var(--wpdi-surface);
+	border: 1px solid var(--wpdi-border);
+	border-radius: var(--wpdi-radius);
+	padding: var(--wpdi-space-4);
+	box-shadow: var(--wpdi-shadow);
+}
+
+.wpdi-wrap .wpdi-card h2 {
+	margin: 0 0 var(--wpdi-space-1);
+	padding: 0;
+	border: 0;
+	font-family: var(--wpdi-font);
+	font-size: 15px;
+	font-weight: 600;
+	letter-spacing: -0.01em;
+	color: var(--wpdi-ink);
+}
+
+.wpdi-wrap .wpdi-card > p {
+	margin: 0 0 var(--wpdi-space-3);
+	max-width: 78ch;
+	font-size: 13px;
+	line-height: 1.55;
+	color: var(--wpdi-ink-muted);
+}
+
+.wpdi-tab-panel > .wpdi-card,
+.wpdi-cleanup-card,
+.wpdi-autoload-card {
+	margin-bottom: var(--wpdi-space-4);
+}
+
+/* Dashboard two-column layout (Overview tab). */
+.wpdi-dashboard {
+	display: grid;
+	grid-template-columns: minmax(260px, 2fr) 3fr;
+	gap: var(--wpdi-space-4);
+	margin-bottom: var(--wpdi-space-4);
+	align-items: stretch;
+}
+
+/* ------------------------------------------------------------------
+ * 5. Health score — the centerpiece
+ * ------------------------------------------------------------------ */
+
+.wpdi-wrap .wpdi-health-card {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	gap: var(--wpdi-space-2);
+	border-top: 3px solid var(--wpdi-border-strong);
+}
+
+.wpdi-wrap .wpdi-health-card h2 {
+	margin: 0;
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--wpdi-ink-muted);
+}
+
+.wpdi-wrap .wpdi-score-value {
+	font-size: 64px;
+	font-weight: 700;
+	line-height: 1;
+	letter-spacing: -0.03em;
+	font-variant-numeric: tabular-nums;
+	color: var(--wpdi-ink);
+}
+
+.wpdi-wrap .wpdi-health-card > p {
+	margin: 0;
+	font-size: 12px;
+	color: var(--wpdi-ink-muted);
+}
+
+.wpdi-wrap .wpdi-score-badge {
+	display: inline-block;
+	padding: 3px 12px;
+	border: 1px solid var(--wpdi-border);
+	border-radius: var(--wpdi-radius-pill);
+	background: var(--wpdi-surface-subtle);
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--wpdi-ink-secondary);
+}
+
+/* Severity variants (class set in PHP: score <=40 good, <=70 warning, else critical). */
+.wpdi-wrap .wpdi-score-good {
+	border-top-color: var(--wpdi-good-vivid);
+}
+
+.wpdi-wrap .wpdi-score-good .wpdi-score-value {
+	color: var(--wpdi-good);
+}
+
+.wpdi-wrap .wpdi-score-good .wpdi-score-badge {
+	background: var(--wpdi-good-bg);
+	border-color: var(--wpdi-good-border);
+	color: var(--wpdi-good);
+}
+
+.wpdi-wrap .wpdi-score-warning {
+	border-top-color: var(--wpdi-warning-vivid);
+}
+
+.wpdi-wrap .wpdi-score-warning .wpdi-score-value {
+	color: var(--wpdi-warning-strong);
+}
+
+.wpdi-wrap .wpdi-score-warning .wpdi-score-badge {
+	background: var(--wpdi-warning-bg);
+	border-color: var(--wpdi-warning-border);
+	color: var(--wpdi-warning);
+}
+
+.wpdi-wrap .wpdi-score-critical {
+	border-top-color: var(--wpdi-critical-vivid);
+}
+
+.wpdi-wrap .wpdi-score-critical .wpdi-score-value {
+	color: var(--wpdi-critical);
+}
+
+.wpdi-wrap .wpdi-score-critical .wpdi-score-badge {
+	background: var(--wpdi-critical-bg);
+	border-color: var(--wpdi-critical-border);
+	color: var(--wpdi-critical);
+}
+
+/* ------------------------------------------------------------------
+ * 6. Stat tiles
+ * ------------------------------------------------------------------ */
+
 .wpdi-stats-grid {
 	display: grid;
 	grid-template-columns: repeat(2, 1fr);
-	gap: 15px;
+	gap: var(--wpdi-space-2);
 }
 
 .wpdi-stat {
-	text-align: center;
-	padding: 15px;
-	background: #f6f7f7;
-	border-radius: 4px;
+	padding: var(--wpdi-space-3);
+	background: var(--wpdi-surface-subtle);
+	border: 1px solid var(--wpdi-border);
+	border-radius: var(--wpdi-radius-sm);
+	text-align: left;
+	transition: border-color 0.15s ease;
+}
+
+.wpdi-stat:hover {
+	border-color: var(--wpdi-accent-border);
 }
 
 .wpdi-stat-value {
 	display: block;
-	font-size: 20px;
-	font-weight: 600;
-	color: #1d2327;
-	margin-bottom: 4px;
+	margin-bottom: var(--wpdi-space-1);
+	font-size: 22px;
+	font-weight: 700;
+	letter-spacing: -0.02em;
+	font-variant-numeric: tabular-nums;
+	color: var(--wpdi-ink);
 }
 
 .wpdi-stat-label {
-	font-size: 12px;
-	color: #646970;
+	display: block;
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--wpdi-ink-muted);
 }
 
-/* Cleanup Card */
-.wpdi-cleanup-card {
-	margin-bottom: 20px;
-}
-
-.wpdi-warning {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	padding: 12px;
-	background: #fcf9e8;
-	border-left: 4px solid #dba617;
-	margin-bottom: 20px;
-	color: #614d00;
-}
-
-.wpdi-warning .dashicons {
-	color: #dba617;
-}
-
-.wpdi-notice {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	padding: 12px;
-	margin-bottom: 20px;
-	border-radius: 4px;
-}
-
-.wpdi-notice-info {
-	background: #f0f6fc;
-	border-left: 4px solid #72aee6;
-	color: #1d4ed8;
-}
-
-.wpdi-notice-info .dashicons {
-	color: #72aee6;
-}
-
-.wpdi-cleanup-grid {
+/* Health tab metric list — same tile language. */
+.wpdi-detail-list {
 	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-	gap: 12px;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: var(--wpdi-space-2);
+	margin: 0;
+	background: transparent;
+	border: 0;
 }
 
-.wpdi-cleanup-item {
-	display: flex;
+.wpdi-detail-list > div {
+	background: var(--wpdi-surface-subtle);
+	border: 1px solid var(--wpdi-border);
+	border-radius: var(--wpdi-radius-sm);
+	padding: var(--wpdi-space-3);
+}
+
+.wpdi-detail-list dt {
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--wpdi-ink-muted);
+}
+
+.wpdi-detail-list dd {
+	margin: var(--wpdi-space-1) 0 0;
+	font-size: 19px;
+	font-weight: 700;
+	letter-spacing: -0.02em;
+	font-variant-numeric: tabular-nums;
+	color: var(--wpdi-ink);
+}
+
+/* ------------------------------------------------------------------
+ * 7. Buttons and form controls (scoped refinement of WP .button)
+ * ------------------------------------------------------------------ */
+
+.wpdi-wrap .button,
+.wpdi-wrap .button-secondary {
+	display: inline-flex;
 	align-items: center;
-	justify-content: space-between;
-	padding: 12px 15px;
-	background: #f6f7f7;
-	border-radius: 4px;
-	transition: background 0.2s;
-}
-
-.wpdi-cleanup-item:hover {
-	background: #f0f0f1;
-}
-
-.wpdi-cleanup-info {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-}
-
-.wpdi-cleanup-info strong {
-	color: #1d2327;
-}
-
-.wpdi-count {
-	background: #2271b1;
-	color: #fff;
-	padding: 2px 8px;
-	border-radius: 10px;
-	font-size: 12px;
+	justify-content: center;
+	gap: 6px;
+	min-height: 34px;
+	padding: 0 14px;
+	background: var(--wpdi-surface);
+	border: 1px solid var(--wpdi-border-strong);
+	border-radius: var(--wpdi-radius-sm);
+	font-family: var(--wpdi-font);
+	font-size: 13px;
 	font-weight: 500;
+	line-height: 1;
+	color: var(--wpdi-ink-secondary);
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+	transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
-.wpdi-cleanup-item[data-zero="true"] .wpdi-count {
-	background: #c3c4c7;
+.wpdi-wrap .button:hover,
+.wpdi-wrap .button-secondary:hover {
+	background: var(--wpdi-accent-soft);
+	border-color: var(--wpdi-accent-border);
+	color: var(--wpdi-accent-strong);
 }
 
-.wpdi-cleanup-btn {
-	min-width: 70px;
+.wpdi-wrap .button.button-small {
+	min-height: 28px;
+	padding: 0 10px;
+	font-size: 12px;
 }
 
-.wpdi-cleanup-btn:disabled {
-	opacity: 0.5;
+.wpdi-wrap .button .dashicons {
+	font-size: 16px;
+	width: 16px;
+	height: 16px;
+	margin: 0;
+	line-height: 1;
+}
+
+/* Primary actions carry the accent. */
+.wpdi-wrap .wpdi-cleanup-btn,
+.wpdi-wrap #wpdi-ai-explain,
+.wpdi-wrap #wpdi-refresh {
+	background: var(--wpdi-accent);
+	border-color: var(--wpdi-accent);
+	color: #ffffff;
+	box-shadow: 0 1px 2px rgba(67, 56, 202, 0.25);
+}
+
+.wpdi-wrap .wpdi-cleanup-btn:hover,
+.wpdi-wrap #wpdi-ai-explain:hover,
+.wpdi-wrap #wpdi-refresh:hover {
+	background: var(--wpdi-accent-strong);
+	border-color: var(--wpdi-accent-strong);
+	color: #ffffff;
+}
+
+/* Disabled state — clearly muted (overrides WP core !important rules). */
+.wpdi-wrap .button:disabled,
+.wpdi-wrap .button[disabled],
+.wpdi-wrap .button.disabled {
+	background: var(--wpdi-surface-sunken) !important;
+	border-color: var(--wpdi-border) !important;
+	color: #94a3b8 !important;
+	box-shadow: none !important;
 	cursor: not-allowed;
 }
 
-.wpdi-cleanup-btn.loading {
-	pointer-events: none;
+/* Loading spinner (JS toggles .loading on any actioned button). */
+.wpdi-wrap .button.loading {
 	position: relative;
-	color: transparent;
+	pointer-events: none;
+	color: transparent !important;
 }
 
-.wpdi-cleanup-btn.loading::after {
+.wpdi-wrap .button.loading::after {
 	content: "";
 	position: absolute;
-	width: 14px;
-	height: 14px;
 	top: 50%;
 	left: 50%;
+	width: 14px;
+	height: 14px;
 	margin: -7px 0 0 -7px;
-	border: 2px solid #2271b1;
-	border-radius: 50%;
+	border: 2px solid var(--wpdi-accent);
 	border-top-color: transparent;
+	border-radius: 50%;
 	animation: wpdi-spin 0.8s linear infinite;
+}
+
+.wpdi-wrap .wpdi-cleanup-btn.loading::after,
+.wpdi-wrap #wpdi-ai-explain.loading::after,
+.wpdi-wrap #wpdi-refresh.loading::after {
+	border-color: rgba(255, 255, 255, 0.9);
+	border-top-color: transparent;
 }
 
 @keyframes wpdi-spin {
@@ -258,70 +470,567 @@
 	}
 }
 
-/* Autoload Table */
-.wpdi-autoload-card {
-	margin-bottom: 20px;
+/* Inputs and selects. */
+.wpdi-wrap input[type="search"],
+.wpdi-wrap input[type="text"],
+.wpdi-wrap select {
+	min-height: 34px;
+	padding: 0 12px;
+	background-color: var(--wpdi-surface);
+	border: 1px solid var(--wpdi-border-strong);
+	border-radius: var(--wpdi-radius-sm);
+	font-family: var(--wpdi-font);
+	font-size: 13px;
+	color: var(--wpdi-ink);
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.wpdi-autoload-card .description {
-	margin: 0 0 15px;
-	color: #646970;
+.wpdi-wrap input[type="search"]:focus,
+.wpdi-wrap input[type="text"]:focus,
+.wpdi-wrap select:focus {
+	border-color: var(--wpdi-accent);
+	box-shadow: 0 0 0 3px var(--wpdi-accent-soft);
+	outline: none;
 }
 
-.wpdi-autoload-card table {
-	border-collapse: collapse;
+.wpdi-wrap input[type="search"]::placeholder {
+	color: var(--wpdi-ink-muted);
 }
 
-.wpdi-autoload-card table th:nth-child(2),
-.wpdi-autoload-card table td:nth-child(2) {
-	width: 30%;
+/* Visible focus rings everywhere. */
+.wpdi-wrap a:focus-visible,
+.wpdi-wrap .button:focus-visible,
+.wpdi-wrap .nav-tab:focus-visible,
+.wpdi-wrap .wpdi-preview-close:focus-visible {
+	outline: 2px solid var(--wpdi-accent);
+	outline-offset: 2px;
+	box-shadow: none;
 }
 
-.wpdi-autoload-card code {
+.wpdi-filter-form {
+	display: flex;
+	align-items: center;
+	gap: var(--wpdi-space-2);
+	flex-wrap: wrap;
+}
+
+.wpdi-filter-form input[type="search"] {
+	min-width: 280px;
+}
+
+.wpdi-wrap .wpdi-ai-card select {
+	max-width: 320px;
+}
+
+/* ------------------------------------------------------------------
+ * 8. Badges, pills, counts
+ * ------------------------------------------------------------------ */
+
+.wpdi-badge,
+.wpdi-status {
+	display: inline-block;
+	padding: 2px 9px;
+	border: 1px solid var(--wpdi-border);
+	border-radius: var(--wpdi-radius-pill);
+	background: var(--wpdi-surface-sunken);
+	font-size: 11px;
+	font-weight: 600;
+	line-height: 1.5;
+	color: var(--wpdi-ink-secondary);
+	white-space: nowrap;
+	vertical-align: middle;
+}
+
+.wpdi-status-active {
+	background: var(--wpdi-good-bg);
+	border-color: var(--wpdi-good-border);
+	color: var(--wpdi-good);
+}
+
+.wpdi-status-inactive {
+	background: var(--wpdi-surface-sunken);
+	border-color: var(--wpdi-border-strong);
+	color: var(--wpdi-ink-secondary);
+}
+
+.wpdi-protected {
+	background: var(--wpdi-warning-bg);
+	border-color: var(--wpdi-warning-border);
+	color: var(--wpdi-warning);
+}
+
+/* Inline code chips. */
+.wpdi-wrap code {
+	padding: 2px 6px;
+	background: var(--wpdi-surface-sunken);
+	border-radius: var(--wpdi-radius-xs);
+	font-family: var(--wpdi-font-mono);
 	font-size: 12px;
-	background: #f0f0f1;
-	padding: 2px 5px;
+	color: var(--wpdi-ink-secondary);
 	word-break: break-all;
 }
 
-/* Footer */
+/* ------------------------------------------------------------------
+ * 9. Data tables
+ * ------------------------------------------------------------------ */
+
+.wpdi-table-scroll {
+	overflow-x: auto;
+	border: 1px solid var(--wpdi-border);
+	border-radius: var(--wpdi-radius-sm);
+	-webkit-overflow-scrolling: touch;
+}
+
+.wpdi-table-scroll > table {
+	min-width: 640px;
+}
+
+.wpdi-plugins-card .wpdi-table-scroll > table {
+	min-width: 900px;
+}
+
+.wpdi-wrap table.widefat {
+	margin: 0;
+	background: var(--wpdi-surface);
+	border: 0;
+	border-collapse: collapse;
+	border-radius: 0;
+	box-shadow: none;
+	font-family: var(--wpdi-font);
+}
+
+.wpdi-wrap table.widefat thead th {
+	padding: 10px var(--wpdi-space-3);
+	background: var(--wpdi-surface-subtle);
+	border-bottom: 1px solid var(--wpdi-border);
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--wpdi-ink-muted);
+	white-space: nowrap;
+}
+
+.wpdi-wrap table.widefat td {
+	padding: 12px var(--wpdi-space-3);
+	border-bottom: 1px solid var(--wpdi-border);
+	font-size: 13px;
+	line-height: 1.5;
+	color: var(--wpdi-ink-secondary);
+	vertical-align: middle;
+}
+
+.wpdi-wrap table.widefat tbody tr:last-child td {
+	border-bottom: 0;
+}
+
+/* Replace WP's zebra striping with a calmer hover state. */
+.wpdi-wrap table.widefat.striped > tbody > tr:nth-child(odd),
+.wpdi-wrap table.widefat.striped > tbody > tr {
+	background: transparent;
+}
+
+.wpdi-wrap table.widefat tbody tr:hover {
+	background: var(--wpdi-accent-soft);
+}
+
+.wpdi-wrap table.widefat td small {
+	display: inline-block;
+	margin-top: 2px;
+	font-size: 11px;
+	color: var(--wpdi-ink-muted);
+}
+
+/* Right-aligned numeric columns per table context. */
+.wpdi-plugins-card table.widefat th:nth-child(3),
+.wpdi-plugins-card table.widefat td:nth-child(3),
+.wpdi-plugins-card table.widefat th:nth-child(4),
+.wpdi-plugins-card table.widefat td:nth-child(4),
+.wpdi-plugins-card table.widefat th:nth-child(5),
+.wpdi-plugins-card table.widefat td:nth-child(5),
+.wpdi-plugins-card table.widefat th:nth-child(6),
+.wpdi-plugins-card table.widefat td:nth-child(6),
+.wpdi-plugins-card table.widefat th:nth-child(7),
+.wpdi-plugins-card table.widefat td:nth-child(7),
+.wpdi-plugins-card table.widefat th:nth-child(8),
+.wpdi-plugins-card table.widefat td:nth-child(8),
+.wpdi-autoload-card table.widefat th:nth-child(4),
+.wpdi-autoload-card table.widefat td:nth-child(4),
+.wpdi-tables-card table.widefat th:nth-child(2),
+.wpdi-tables-card table.widefat td:nth-child(2),
+.wpdi-tables-card table.widefat th:nth-child(3),
+.wpdi-tables-card table.widefat td:nth-child(3),
+.wpdi-snapshots-card table.widefat th:nth-child(3),
+.wpdi-snapshots-card table.widefat td:nth-child(3) {
+	text-align: right;
+	font-variant-numeric: tabular-nums;
+}
+
+/* Action column buttons should not wrap awkwardly. */
+.wpdi-autoload-card table.widefat td:last-child {
+	white-space: nowrap;
+}
+
+/* Pagination. */
+.wpdi-wrap .tablenav {
+	height: auto;
+	margin: var(--wpdi-space-3) 0 0;
+	padding: 0;
+}
+
+.wpdi-wrap .tablenav-pages {
+	float: none;
+	display: flex;
+	justify-content: flex-end;
+	gap: var(--wpdi-space-1);
+	margin: 0;
+}
+
+.wpdi-wrap .tablenav-pages .page-numbers {
+	display: inline-block;
+	min-width: 30px;
+	padding: 5px 9px;
+	background: var(--wpdi-surface);
+	border: 1px solid var(--wpdi-border-strong);
+	border-radius: var(--wpdi-radius-xs);
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 1.4;
+	text-align: center;
+	text-decoration: none;
+	color: var(--wpdi-ink-secondary);
+}
+
+.wpdi-wrap .tablenav-pages a.page-numbers:hover {
+	background: var(--wpdi-accent-soft);
+	border-color: var(--wpdi-accent-border);
+	color: var(--wpdi-accent-strong);
+}
+
+.wpdi-wrap .tablenav-pages .page-numbers.current {
+	background: var(--wpdi-accent);
+	border-color: var(--wpdi-accent);
+	color: #ffffff;
+}
+
+/* ------------------------------------------------------------------
+ * 10. Cleanup grid — card per action
+ * ------------------------------------------------------------------ */
+
+.wpdi-cleanup-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+	gap: var(--wpdi-space-2);
+}
+
+.wpdi-cleanup-item {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--wpdi-space-2);
+	padding: var(--wpdi-space-3);
+	background: var(--wpdi-surface);
+	border: 1px solid var(--wpdi-border);
+	border-radius: var(--wpdi-radius-sm);
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.wpdi-cleanup-item:hover {
+	border-color: var(--wpdi-accent-border);
+	box-shadow: var(--wpdi-shadow);
+}
+
+.wpdi-cleanup-info {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+
+.wpdi-cleanup-info strong {
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+	color: var(--wpdi-ink-secondary);
+}
+
+.wpdi-count {
+	font-size: 22px;
+	font-weight: 700;
+	letter-spacing: -0.02em;
+	font-variant-numeric: tabular-nums;
+	color: var(--wpdi-ink);
+}
+
+.wpdi-cleanup-btn {
+	flex: none;
+}
+
+/* Zero-count items read as settled. */
+.wpdi-cleanup-zero {
+	background: var(--wpdi-surface-subtle);
+}
+
+.wpdi-cleanup-zero:hover {
+	border-color: var(--wpdi-border);
+	box-shadow: none;
+}
+
+.wpdi-cleanup-zero .wpdi-count {
+	color: var(--wpdi-ink-muted);
+}
+
+/* ------------------------------------------------------------------
+ * 11. Option preview modal and AI result panel
+ * ------------------------------------------------------------------ */
+
+.wpdi-wrap .wpdi-preview {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	z-index: 99990;
+	display: flex;
+	flex-direction: column;
+	width: min(680px, calc(100vw - 32px));
+	max-height: min(78vh, 720px);
+	margin: 0;
+	padding: var(--wpdi-space-4);
+	background: var(--wpdi-surface);
+	border: 1px solid var(--wpdi-border);
+	border-radius: var(--wpdi-radius);
+	/* First layer paints a CSS-only backdrop behind the panel. */
+	box-shadow: 0 0 0 100vmax rgba(15, 23, 42, 0.45), var(--wpdi-shadow-lifted);
+	animation: wpdi-modal-in 0.18s ease-out;
+}
+
+.wpdi-wrap .wpdi-preview[hidden] {
+	display: none;
+}
+
+.wpdi-wrap .wpdi-preview h2 {
+	margin: 0 var(--wpdi-space-5) var(--wpdi-space-3) 0;
+	padding-bottom: var(--wpdi-space-2);
+	border-bottom: 1px solid var(--wpdi-border);
+}
+
+.wpdi-wrap .wpdi-preview-close {
+	position: absolute;
+	top: var(--wpdi-space-3);
+	right: var(--wpdi-space-3);
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	padding: 0;
+	background: var(--wpdi-surface-sunken);
+	border: 1px solid var(--wpdi-border);
+	border-radius: var(--wpdi-radius-pill);
+	font-size: 18px;
+	line-height: 1;
+	color: var(--wpdi-ink-secondary);
+	cursor: pointer;
+	transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.wpdi-wrap .wpdi-preview-close:hover {
+	background: var(--wpdi-critical-bg);
+	border-color: var(--wpdi-critical-border);
+	color: var(--wpdi-critical);
+}
+
+.wpdi-wrap .wpdi-preview pre {
+	flex: 1;
+	min-height: 0;
+	margin: 0;
+	padding: var(--wpdi-space-3);
+	overflow: auto;
+	background: var(--wpdi-surface-sunken);
+	border: 1px solid var(--wpdi-border);
+	border-radius: var(--wpdi-radius-sm);
+	font-family: var(--wpdi-font-mono);
+	font-size: 12px;
+	line-height: 1.6;
+	color: var(--wpdi-ink);
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+}
+
+@keyframes wpdi-modal-in {
+	from {
+		opacity: 0;
+		transform: translate(-50%, -48%);
+	}
+	to {
+		opacity: 1;
+		transform: translate(-50%, -50%);
+	}
+}
+
+/* AI result stays an inline panel, clearly framed as interpretation. */
+.wpdi-wrap .wpdi-ai-result {
+	position: relative;
+	margin: var(--wpdi-space-3) 0 0;
+	padding: var(--wpdi-space-3);
+	background: var(--wpdi-accent-soft);
+	border: 1px solid var(--wpdi-accent-border);
+	border-left: 3px solid var(--wpdi-accent);
+	border-radius: var(--wpdi-radius-sm);
+}
+
+.wpdi-wrap .wpdi-ai-result > strong {
+	display: block;
+	margin-bottom: var(--wpdi-space-2);
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--wpdi-accent-strong);
+}
+
+.wpdi-wrap .wpdi-ai-result pre {
+	margin: 0;
+	padding: var(--wpdi-space-3);
+	max-height: 420px;
+	overflow: auto;
+	background: var(--wpdi-surface);
+	border: 1px solid var(--wpdi-accent-border);
+	border-radius: var(--wpdi-radius-xs);
+	font-family: var(--wpdi-font-mono);
+	font-size: 12px;
+	line-height: 1.6;
+	color: var(--wpdi-ink);
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+}
+
+/* ------------------------------------------------------------------
+ * 12. Notices — integrated, calm (WP classes preserved)
+ * ------------------------------------------------------------------ */
+
+.wpdi-wrap .notice {
+	margin: 0 0 var(--wpdi-space-3);
+	padding: 10px var(--wpdi-space-3);
+	background: var(--wpdi-surface-subtle);
+	border: 1px solid var(--wpdi-border);
+	border-left: 3px solid var(--wpdi-border-strong);
+	border-radius: var(--wpdi-radius-sm);
+	box-shadow: none;
+}
+
+.wpdi-wrap .notice p {
+	margin: 0;
+	padding: 0;
+	font-size: 13px;
+	line-height: 1.5;
+	color: var(--wpdi-ink-secondary);
+}
+
+.wpdi-wrap .notice-info {
+	background: var(--wpdi-info-bg);
+	border-color: var(--wpdi-info-border);
+	border-left-color: var(--wpdi-info-vivid);
+}
+
+.wpdi-wrap .notice-info p {
+	color: var(--wpdi-info);
+}
+
+.wpdi-wrap .notice-warning {
+	background: var(--wpdi-warning-bg);
+	border-color: var(--wpdi-warning-border);
+	border-left-color: var(--wpdi-warning-vivid);
+}
+
+.wpdi-wrap .notice-warning p {
+	color: var(--wpdi-warning);
+}
+
+.wpdi-wrap .notice-error {
+	background: var(--wpdi-critical-bg);
+	border-color: var(--wpdi-critical-border);
+	border-left-color: var(--wpdi-critical-vivid);
+}
+
+.wpdi-wrap .notice-error p {
+	color: var(--wpdi-critical);
+}
+
+/* Legacy helper notices kept for compatibility. */
+.wpdi-warning {
+	display: flex;
+	align-items: center;
+	gap: var(--wpdi-space-2);
+	margin-bottom: var(--wpdi-space-3);
+	padding: 10px var(--wpdi-space-3);
+	background: var(--wpdi-warning-bg);
+	border: 1px solid var(--wpdi-warning-border);
+	border-left: 3px solid var(--wpdi-warning-vivid);
+	border-radius: var(--wpdi-radius-sm);
+	color: var(--wpdi-warning);
+}
+
+.wpdi-notice {
+	display: flex;
+	align-items: center;
+	gap: var(--wpdi-space-2);
+	margin-bottom: var(--wpdi-space-3);
+	padding: 10px var(--wpdi-space-3);
+	border-radius: var(--wpdi-radius-sm);
+}
+
+.wpdi-notice-info {
+	background: var(--wpdi-info-bg);
+	border: 1px solid var(--wpdi-info-border);
+	border-left: 3px solid var(--wpdi-info-vivid);
+	color: var(--wpdi-info);
+}
+
+/* ------------------------------------------------------------------
+ * 13. Footer utilities
+ * ------------------------------------------------------------------ */
+
 .wpdi-footer {
 	display: flex;
-	gap: 10px;
-	padding: 20px 0;
+	gap: var(--wpdi-space-2);
+	padding: var(--wpdi-space-4) 0;
 }
 
-.wpdi-footer .button .dashicons {
-	margin-right: 4px;
-	vertical-align: middle;
-	margin-top: -2px;
-}
+/* ------------------------------------------------------------------
+ * 14. Toast — appended to <body> by JS, intentionally outside scope
+ * ------------------------------------------------------------------ */
 
-/* Toast Notifications */
 .wpdi-toast {
 	position: fixed;
-	bottom: 30px;
 	right: 30px;
-	padding: 12px 20px;
-	background: #1d2327;
-	color: #fff;
-	border-radius: 4px;
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+	bottom: 30px;
 	z-index: 99999;
+	max-width: 360px;
+	padding: 12px 18px;
+	background: #0f172a;
+	border-left: 4px solid #64748b;
+	border-radius: 10px;
+	box-shadow: 0 8px 24px rgba(15, 23, 42, 0.28);
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+	font-size: 13px;
+	line-height: 1.45;
+	color: #ffffff;
 	animation: wpdi-slide-in 0.3s ease;
 }
 
 .wpdi-toast.success {
-	background: #00a32a;
+	border-left-color: #22c55e;
 }
 
 .wpdi-toast.error {
-	background: #d63638;
+	border-left-color: #ef4444;
 }
 
 @keyframes wpdi-slide-in {
 	from {
-		transform: translateY(20px);
+		transform: translateY(16px);
 		opacity: 0;
 	}
 	to {
@@ -330,130 +1039,55 @@
 	}
 }
 
-/* Responsive */
-@media (max-width: 600px) {
-	.wpdi-cleanup-grid {
+/* ------------------------------------------------------------------
+ * 15. Responsive
+ * ------------------------------------------------------------------ */
+
+@media (max-width: 960px) {
+	.wpdi-dashboard {
 		grid-template-columns: 1fr;
 	}
-	
-	.wpdi-stats-grid {
-		grid-template-columns: 1fr;
-	}
-}
-
-/* 1.1 diagnostic sections */
-.wpdi-tabs {
-	margin-bottom: 20px;
-}
-
-.wpdi-tab-panel > .wpdi-card {
-	margin-bottom: 20px;
-}
-
-.wpdi-filter-form {
-	display: flex;
-	gap: 8px;
-	align-items: center;
-	flex-wrap: wrap;
-}
-
-.wpdi-filter-form input[type="search"] {
-	min-width: 280px;
-}
-
-.wpdi-detail-list {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-	gap: 1px;
-	background: #c3c4c7;
-	border: 1px solid #c3c4c7;
-}
-
-.wpdi-detail-list > div {
-	background: #fff;
-	padding: 12px;
-}
-
-.wpdi-detail-list dt {
-	color: #646970;
-}
-
-.wpdi-detail-list dd {
-	margin: 4px 0 0;
-	font-size: 18px;
-	font-weight: 600;
-}
-
-.wpdi-badge,
-.wpdi-status {
-	display: inline-block;
-	padding: 1px 6px;
-	border-radius: 10px;
-	background: #f0f0f1;
-	font-size: 11px;
-	line-height: 1.6;
-}
-
-.wpdi-status-active {
-	background: #edfaef;
-	color: #006b1b;
-}
-
-.wpdi-status-inactive,
-.wpdi-protected {
-	background: #fcf9e8;
-	color: #614d00;
-}
-
-.wpdi-preview,
-.wpdi-ai-result {
-	position: relative;
-	margin: 0 0 20px;
-	padding: 18px;
-	border: 1px solid #72aee6;
-	border-left-width: 4px;
-	background: #f0f6fc;
-}
-
-.wpdi-preview-close {
-	position: absolute;
-	top: 8px;
-	right: 10px;
-	border: 0;
-	background: transparent;
-	font-size: 24px;
-	cursor: pointer;
-}
-
-.wpdi-preview pre,
-.wpdi-ai-result pre {
-	white-space: pre-wrap;
-	overflow-wrap: anywhere;
-	max-height: 420px;
-	overflow: auto;
-}
-
-.wpdi-ai-card select {
-	max-width: 320px;
 }
 
 @media (max-width: 782px) {
-	.wpdi-responsive-table thead {
-		display: none;
+	.wpdi-wrap .wpdi-card {
+		padding: var(--wpdi-space-3);
 	}
 
-	.wpdi-responsive-table tr,
-	.wpdi-responsive-table td {
-		display: block;
-		width: auto !important;
-	}
-
-	.wpdi-responsive-table tr {
-		padding: 8px 0;
+	.wpdi-wrap .wpdi-score-value {
+		font-size: 48px;
 	}
 
 	.wpdi-filter-form input[type="search"] {
 		min-width: 0;
 		width: 100%;
+		flex: 1 1 100%;
+	}
+}
+
+@media (max-width: 600px) {
+	.wpdi-stats-grid,
+	.wpdi-cleanup-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.wpdi-wrap .wpdi-tabs .nav-tab {
+		padding: 8px 10px 10px;
+		font-size: 12px;
+	}
+
+	.wpdi-toast {
+		right: 16px;
+		bottom: 16px;
+		left: 16px;
+		max-width: none;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.wpdi-wrap *,
+	.wpdi-toast {
+		animation-duration: 0.01ms !important;
+		transition-duration: 0.01ms !important;
 	}
 }

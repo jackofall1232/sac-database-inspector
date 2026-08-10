@@ -455,9 +455,17 @@ class WPDI_Admin {
 		$r = $report['health']['runtime'];
 		$s = $report['health']['storage'];
 		$m = $report['health']['maintenance'];
+
+		$score           = (int) $report['health']['score'];
+		$score_severity  = $score <= 40 ? 'good' : ( $score <= 70 ? 'warning' : 'critical' );
+		$severity_labels = array(
+			'good'     => __( 'Healthy', 'sac-database-inspector' ),
+			'warning'  => __( 'Needs attention', 'sac-database-inspector' ),
+			'critical' => __( 'Critical', 'sac-database-inspector' ),
+		);
 		?>
 		<div class="wpdi-dashboard">
-			<div class="wpdi-card wpdi-health-card"><h2><?php esc_html_e( 'Database Health', 'sac-database-inspector' ); ?></h2><div class="wpdi-score-value"><?php echo esc_html( $report['health']['score'] ); ?></div><p><?php esc_html_e( 'Penalty score / 100 — lower is healthier.', 'sac-database-inspector' ); ?></p></div>
+			<div class="wpdi-card wpdi-health-card wpdi-score-<?php echo esc_attr( $score_severity ); ?>"><h2><?php esc_html_e( 'Database Health', 'sac-database-inspector' ); ?></h2><div class="wpdi-score-value"><?php echo esc_html( $report['health']['score'] ); ?></div><span class="wpdi-score-badge"><?php echo esc_html( $severity_labels[ $score_severity ] ); ?></span><p><?php esc_html_e( 'Penalty score / 100 — lower is healthier.', 'sac-database-inspector' ); ?></p></div>
 			<div class="wpdi-card"><h2><?php esc_html_e( 'Overview', 'sac-database-inspector' ); ?></h2><div class="wpdi-stats-grid">
 				<?php $this->metric( self::format_bytes( $report['database']['total_size'] ), __( 'Total DB Size', 'sac-database-inspector' ) ); ?>
 				<?php $this->metric( self::format_bytes( $r['autoload_size'] ), __( 'Autoload Size', 'sac-database-inspector' ) ); ?>
@@ -493,7 +501,7 @@ class WPDI_Admin {
 					$actions['object_cache'] = array( __( 'Object Cache', 'sac-database-inspector' ), 1 ); }
 				foreach ( $actions as $action => $data ) :
 					?>
-				<div class="wpdi-cleanup-item"><div class="wpdi-cleanup-info"><strong><?php echo esc_html( $data[0] ); ?></strong><span class="wpdi-count"><?php echo esc_html( number_format_i18n( $data[1] ) ); ?></span></div><button class="button wpdi-cleanup-btn" data-action="<?php echo esc_attr( $action ); ?>" <?php disabled( $this->is_read_only() || 0 === $data[1] ); ?>><?php esc_html_e( 'Run batch', 'sac-database-inspector' ); ?></button></div>
+				<div class="wpdi-cleanup-item<?php echo esc_attr( 0 === $data[1] ? ' wpdi-cleanup-zero' : '' ); ?>"><div class="wpdi-cleanup-info"><strong><?php echo esc_html( $data[0] ); ?></strong><span class="wpdi-count"><?php echo esc_html( number_format_i18n( $data[1] ) ); ?></span></div><button class="button wpdi-cleanup-btn" data-action="<?php echo esc_attr( $action ); ?>" <?php disabled( $this->is_read_only() || 0 === $data[1] ); ?>><?php esc_html_e( 'Run batch', 'sac-database-inspector' ); ?></button></div>
 				<?php endforeach; ?>
 			</div>
 		</div>
@@ -541,13 +549,13 @@ class WPDI_Admin {
 	 */
 	private function render_plugins( $report ) {
 		?>
-		<div class="wpdi-card"><h2><?php esc_html_e( 'Plugin Database Footprints', 'sac-database-inspector' ); ?></h2><p><?php esc_html_e( 'Only exact installed-plugin prefixes and curated exact prefixes are attributed. Estimates omit unknown artifacts and may undercount.', 'sac-database-inspector' ); ?></p>
-		<table class="widefat striped wpdi-responsive-table"><thead><tr><th><?php esc_html_e( 'Plugin', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Status', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Options', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Autoload', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Transients', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Metadata', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Tables', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Estimated total', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Confidence', 'sac-database-inspector' ); ?></th></tr></thead><tbody>
+		<div class="wpdi-card wpdi-plugins-card"><h2><?php esc_html_e( 'Plugin Database Footprints', 'sac-database-inspector' ); ?></h2><p><?php esc_html_e( 'Only exact installed-plugin prefixes and curated exact prefixes are attributed. Estimates omit unknown artifacts and may undercount.', 'sac-database-inspector' ); ?></p>
+		<div class="wpdi-table-scroll"><table class="widefat striped wpdi-responsive-table"><thead><tr><th><?php esc_html_e( 'Plugin', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Status', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Options', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Autoload', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Transients', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Metadata', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Tables', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Estimated total', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Confidence', 'sac-database-inspector' ); ?></th></tr></thead><tbody>
 		<?php
 		foreach ( $report['plugins'] as $plugin ) :
 			?>
 			<tr><td><?php echo esc_html( $plugin['plugin'] ); ?></td><td><span class="wpdi-status wpdi-status-<?php echo esc_attr( $plugin['status'] ); ?>"><?php echo esc_html( ucfirst( $plugin['status'] ) ); ?></span></td><td><?php echo esc_html( number_format_i18n( $plugin['options_count'] ) . ' / ' . self::format_bytes( $plugin['options_size'] ) ); ?></td><td><?php echo esc_html( self::format_bytes( $plugin['autoload_size'] ) ); ?></td><td><?php echo esc_html( self::format_bytes( $plugin['transient_size'] ) ); ?></td><td><?php echo esc_html( self::format_bytes( $plugin['postmeta_size'] + $plugin['usermeta_size'] ) ); ?></td><td><?php echo esc_html( number_format_i18n( count( $plugin['custom_tables'] ) ) ); ?></td><td><?php echo esc_html( self::format_bytes( $plugin['estimated_total'] ) ); ?></td><td><?php echo esc_html( ucfirst( $plugin['confidence'] ) ); ?></td></tr><?php endforeach; ?>
-		</tbody></table></div>
+		</tbody></table></div></div>
 		<?php
 	}
 
@@ -572,7 +580,7 @@ class WPDI_Admin {
 	 */
 	private function render_autoload_table( $autoload, $actions ) {
 		?>
-		<div class="wpdi-card wpdi-autoload-card"><h2><?php esc_html_e( 'Autoloaded Options', 'sac-database-inspector' ); ?></h2><table class="widefat striped wpdi-responsive-table"><thead><tr><th><?php esc_html_e( 'Option', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Owner / status', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Confidence', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Size', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'State', 'sac-database-inspector' ); ?></th>
+		<div class="wpdi-card wpdi-autoload-card"><h2><?php esc_html_e( 'Autoloaded Options', 'sac-database-inspector' ); ?></h2><div class="wpdi-table-scroll"><table class="widefat striped wpdi-responsive-table"><thead><tr><th><?php esc_html_e( 'Option', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Owner / status', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Confidence', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Size', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'State', 'sac-database-inspector' ); ?></th>
 		<?php
 		if ( $actions ) :
 			?>
@@ -601,7 +609,7 @@ class WPDI_Admin {
 			if ( $actions ) :
 				?>
 	<td><button class="button button-small wpdi-preview-option" data-option="<?php echo esc_attr( $option['name'] ); ?>"><?php esc_html_e( 'Preview', 'sac-database-inspector' ); ?></button> <button class="button button-small wpdi-autoload-toggle" data-option="<?php echo esc_attr( $option['name'] ); ?>" data-enabled="0" <?php disabled( $this->is_read_only() || $option['protected'] ); ?>><?php esc_html_e( 'Disable autoload', 'sac-database-inspector' ); ?></button></td><?php endif; ?></tr><?php endforeach; ?>
-		</tbody></table>
+		</tbody></table></div>
 		<?php
 		if ( $actions && $autoload['total_pages'] > 1 ) :
 			?>
@@ -630,7 +638,7 @@ class WPDI_Admin {
 	 */
 	private function render_ghost( $report ) {
 		?>
-		<div class="wpdi-card"><h2><?php esc_html_e( 'Ghost / Orphan Data', 'sac-database-inspector' ); ?></h2><p><?php esc_html_e( 'Scanning and deletion are separate. Missing-plugin findings are heuristic and cannot be deleted from this screen. Inactive installed plugins are not classified as missing.', 'sac-database-inspector' ); ?></p><table class="widefat striped wpdi-responsive-table"><thead><tr><th><?php esc_html_e( 'Artifact', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Type', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Owner / status', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Confidence', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Why shown', 'sac-database-inspector' ); ?></th></tr></thead><tbody>
+		<div class="wpdi-card wpdi-ghost-card"><h2><?php esc_html_e( 'Ghost / Orphan Data', 'sac-database-inspector' ); ?></h2><p><?php esc_html_e( 'Scanning and deletion are separate. Missing-plugin findings are heuristic and cannot be deleted from this screen. Inactive installed plugins are not classified as missing.', 'sac-database-inspector' ); ?></p><div class="wpdi-table-scroll"><table class="widefat striped wpdi-responsive-table"><thead><tr><th><?php esc_html_e( 'Artifact', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Type', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Owner / status', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Confidence', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Why shown', 'sac-database-inspector' ); ?></th></tr></thead><tbody>
 		<?php
 		if ( empty( $report['ghost_data'] ) ) :
 			?>
@@ -639,7 +647,7 @@ class WPDI_Admin {
 		foreach ( $report['ghost_data'] as $item ) :
 			?>
 			<tr><td><code><?php echo esc_html( $item['artifact'] ); ?></code></td><td><?php echo esc_html( ucfirst( str_replace( '_', ' ', $item['type'] ) ) ); ?></td><td><?php echo esc_html( $item['owner'] ); ?><br><small><?php echo esc_html( str_replace( '_', ' ', ucfirst( $item['owner_status'] ) ) ); ?></small></td><td><?php echo esc_html( ucfirst( $item['confidence'] ) ); ?></td><td><?php echo esc_html( $item['reason'] ); ?></td></tr><?php endforeach; ?>
-		</tbody></table></div>
+		</tbody></table></div></div>
 		<?php
 	}
 
@@ -650,7 +658,7 @@ class WPDI_Admin {
 	 */
 	private function render_tables( $report ) {
 		?>
-		<div class="wpdi-card"><h2><?php esc_html_e( 'Database Tables', 'sac-database-inspector' ); ?></h2>
+		<div class="wpdi-card wpdi-tables-card"><h2><?php esc_html_e( 'Database Tables', 'sac-database-inspector' ); ?></h2>
 		<?php
 		if ( empty( $report['tables'] ) ) :
 			?>
@@ -658,7 +666,7 @@ class WPDI_Admin {
 			<?php
 else :
 	?>
-			<table class="widefat striped wpdi-responsive-table"><thead><tr><th><?php esc_html_e( 'Table', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Size', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Rows (estimate)', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Owner / status', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Confidence', 'sac-database-inspector' ); ?></th></tr></thead><tbody>
+			<div class="wpdi-table-scroll"><table class="widefat striped wpdi-responsive-table"><thead><tr><th><?php esc_html_e( 'Table', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Size', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Rows (estimate)', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Owner / status', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Confidence', 'sac-database-inspector' ); ?></th></tr></thead><tbody>
 			<?php
 			foreach ( $report['tables'] as $table ) :
 				?>
@@ -666,7 +674,7 @@ else :
 				<?php
 				if ( $table['owner_status'] ) :
 					?>
-	<br><small><?php echo esc_html( str_replace( '_', ' ', ucfirst( $table['owner_status'] ) ) ); ?></small><?php endif; ?></td><td title="<?php echo esc_attr( $table['reason'] ); ?>"><?php echo esc_html( ucfirst( $table['confidence'] ) ); ?></td></tr><?php endforeach; ?></tbody></table><?php endif; ?></div>
+	<br><small><?php echo esc_html( str_replace( '_', ' ', ucfirst( $table['owner_status'] ) ) ); ?></small><?php endif; ?></td><td title="<?php echo esc_attr( $table['reason'] ); ?>"><?php echo esc_html( ucfirst( $table['confidence'] ) ); ?></td></tr><?php endforeach; ?></tbody></table></div><?php endif; ?></div>
 		<?php
 	}
 
@@ -709,7 +717,7 @@ else :
 	private function render_snapshots() {
 		$list = $this->snapshots->list_metadata();
 		?>
-		<div class="wpdi-card"><h2><?php esc_html_e( 'Safety Snapshots', 'sac-database-inspector' ); ?></h2><p><?php esc_html_e( 'SAC keeps at most 20 local snapshots for 14 days. Option and orphan-metadata batches are restorable; post/comment deletion snapshots are audit-only. Snapshot values are never included in exports or AI context.', 'sac-database-inspector' ); ?></p><table class="widefat striped"><thead><tr><th><?php esc_html_e( 'Created (UTC)', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Operation', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Records', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Restore', 'sac-database-inspector' ); ?></th></tr></thead><tbody>
+		<div class="wpdi-card wpdi-snapshots-card"><h2><?php esc_html_e( 'Safety Snapshots', 'sac-database-inspector' ); ?></h2><p><?php esc_html_e( 'SAC keeps at most 20 local snapshots for 14 days. Option and orphan-metadata batches are restorable; post/comment deletion snapshots are audit-only. Snapshot values are never included in exports or AI context.', 'sac-database-inspector' ); ?></p><div class="wpdi-table-scroll"><table class="widefat striped"><thead><tr><th><?php esc_html_e( 'Created (UTC)', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Operation', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Records', 'sac-database-inspector' ); ?></th><th><?php esc_html_e( 'Restore', 'sac-database-inspector' ); ?></th></tr></thead><tbody>
 		<?php
 		if ( empty( $list ) ) :
 			?>
@@ -730,7 +738,7 @@ else :
 endif;
 ?>
 </td></tr><?php endforeach; ?>
-		</tbody></table></div>
+		</tbody></table></div></div>
 		<?php
 	}
 

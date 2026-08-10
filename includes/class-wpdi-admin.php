@@ -794,10 +794,10 @@ endif;
 		<div class="wpdi-card wpdi-review-banner" role="status">
 			<div class="wpdi-review-copy">
 				<strong><?php esc_html_e( 'Is SAC Database Inspector helping you?', 'sac-database-inspector' ); ?></strong>
-				<p><?php esc_html_e( 'You have already tidied part of your database with it. A quick 5-star review helps other administrators find the plugin — and this note will never appear again.', 'sac-database-inspector' ); ?></p>
+				<p><?php esc_html_e( 'You have already tidied part of your database with it. An honest review helps other administrators find the plugin — and this note will never appear again.', 'sac-database-inspector' ); ?></p>
 			</div>
 			<div class="wpdi-review-actions">
-				<a class="button button-primary wpdi-review-link" href="https://wordpress.org/support/plugin/sac-database-inspector/reviews/#new-post" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Rate it ★★★★★', 'sac-database-inspector' ); ?></a>
+				<a class="button button-primary wpdi-review-link" href="https://wordpress.org/support/plugin/sac-database-inspector/reviews/#new-post" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Leave a review', 'sac-database-inspector' ); ?></a>
 				<button type="button" class="button wpdi-review-dismiss"><?php esc_html_e( 'No thanks', 'sac-database-inspector' ); ?></button>
 			</div>
 		</div>

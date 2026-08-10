@@ -4,7 +4,7 @@ Tags: database, autoload, database cleaner, performance, diagnostics
 Requires at least: 7.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -113,6 +113,15 @@ SAC has no telemetry or tracking. Database inspection and exports are local.
 If an administrator explicitly requests an AI explanation, SAC passes a capped and redacted metadata-only diagnostic context to the provider selected through WordPress Settings → Connectors. The external service, data handling, and terms depend on the connector/provider configured by the site owner. SAC does not store provider credentials and does not send raw option values, database credentials, WordPress salts, private keys, or authentication tokens.
 
 == Changelog ==
+
+= 1.1.1 =
+
+* Fixed PHP warnings and deprecations from information_schema table metadata on MySQL 8 hosts.
+* Fixed AI interpretation failing with a 400 error on providers that reject an explicit temperature.
+* Fixed CSV export deprecation on PHP 8.4 and made output RFC 4180 compliant.
+* Collected the diagnostic report once per request instead of re-scanning per section.
+* Refreshed the admin interface with a cleaner, more professional design.
+* Excluded development files from the production package.
 
 = 1.1.0 =
 

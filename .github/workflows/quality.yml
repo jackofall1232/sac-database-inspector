@@ -53,5 +53,5 @@ jobs:
       - uses: wordpress/plugin-check-action@v1
         with:
           build-dir: ./build/sac-database-inspector
-          wp-version: '7.0'
+          wp-version: '7.1'
           strict: true

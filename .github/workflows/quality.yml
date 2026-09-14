@@ -50,8 +50,12 @@ jobs:
         with:
           name: sac-database-inspector-zip
           path: build/sac-database-inspector.zip
+      # plugin-check-action@v1 only distinguishes 'trunk' from everything else;
+      # any other wp-version value makes wp-env install the latest stable
+      # WordPress release. 'latest' states that honestly. It is 7.1 as of the
+      # 1.1.2 release, matching "Tested up to" in readme.txt.
       - uses: wordpress/plugin-check-action@v1
         with:
           build-dir: ./build/sac-database-inspector
-          wp-version: '7.1'
+          wp-version: 'latest'
           strict: true
